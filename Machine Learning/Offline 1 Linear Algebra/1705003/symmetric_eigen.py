@@ -19,17 +19,20 @@ def get_invertible_symmetric_matrix(n):
         if is_invertible_symmetric_matrix(a):
             return a
 
-def get_matrix_from_eigen(e_val, e_vec):
-    return e_vec @ np.diag(e_val) @ np.linalg.inv(e_vec)
+def get_symetrix_matrix_from_eigen(e_val, e_vec):
+    return e_vec @ np.diag(e_val) @ e_vec.conjugate().T
     
+def main(n):
+    a=get_invertible_symmetric_matrix(n)
+    print("A=",a)
+    (e_val, e_vec) = np.linalg.eigh(a)
+    print("Eigen vectors: ",e_vec)
+    print("Eigen values: ",e_val)
+    b=get_symetrix_matrix_from_eigen(e_val, e_vec)
+    print("B=",b)
+    print("Is A and B same?:",np.allclose(a,b))
+    assert(np.allclose(a,b))
 
 n=int(input("Enter n (dimension of matrix = n x n):"))
-# n=6
-a=get_invertible_symmetric_matrix(n)
-print("a=",a)
-(e_val, e_vec) = np.linalg.eig(a)
-print("Eigen vectors: ",e_vec)
-print("Eigen values: ",e_val)
-b=get_matrix_from_eigen(e_val, e_vec)
-print("b=",b)
-print("Is a and b same?:",np.allclose(a,b))
+# n=5
+main(n)
