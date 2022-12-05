@@ -95,7 +95,6 @@ class Simulator
 		area_server_status += server_status * time_since_last_event;
 	}
 
-
 	void arrive(void) /* Arrival event function. */
 	{
 		Ftype delay;
@@ -176,8 +175,6 @@ public:
 	Ftype server_utilization;
 	Ftype simulation_end_time;
 
-
-
 	Simulator(IAD iad = IAD(),
 			  STD std = STD())
 		: iad(iad),
@@ -232,7 +229,6 @@ public:
 	{
 		return simulation_end_time;
 	}
-
 };
 
 #endif // SIMULATOR_H
