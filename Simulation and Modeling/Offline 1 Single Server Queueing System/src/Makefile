@@ -14,7 +14,7 @@ clean :
 
 .PHONY : clean
 
-a.out : main.o simulator.o
+a.out : main.o
 	${CC} *.o -o a.out
 
 # run the executable
