@@ -58,6 +58,7 @@ int main() /* Main function. */
 {
 
 	ofstream out("mm1.out");
+	out<<setprecision(10);
 	ifstream in("mm1.in");
 	
 	Ftype mean_interarrival, mean_service;
@@ -76,11 +77,25 @@ int main() /* Main function. */
 	s1.set_generator(generator);
 	s1.simulate(num_delays_required);
 	
-
+	out<<"Simulation results:"<<endl<<endl;
 	out<<"Average delay in queue: "<<s1.get_avg_delays_in_q()<<endl;
 	out<<"Average number in queue: "<<s1.get_avg_num_in_q()<<endl;
 	out<<"Server utilization: "<<s1.get_server_utilization()<<endl;
-	out<<"Time simulation ended: "<<s1.get_simulation_end_time()<<endl;
+	out<<"Time simulation ended: "<<s1.get_simulation_end_time()<<endl<<endl;
+
+	Ftype lambda = 1.0/mean_interarrival;
+	Ftype mu = 1.0/mean_service;
+	Ftype avg_delay_in_q = lambda/(mu*(mu-lambda));
+	Ftype avg_num_in_q = lambda*lambda/(mu*(mu-lambda));
+	Ftype server_utilization = lambda/mu;
+	Ftype avg_delay_in_system = 1/(mu-lambda);
+	Ftype simulation_end_time = avg_delay_in_system*num_delays_required;
+
+	out<<"Theoretical values:"<<endl<<endl;
+	out<<"Average delay in queue: "<<avg_delay_in_q<<endl;
+	out<<"Average number in queue: "<<avg_num_in_q<<endl;
+	out<<"Server utilization: "<<server_utilization<<endl;
+	out<<"Time simulation ended: "<<simulation_end_time<<endl;
 
 	return 0;
 }
