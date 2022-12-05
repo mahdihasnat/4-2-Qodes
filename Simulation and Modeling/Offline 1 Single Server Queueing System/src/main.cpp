@@ -1,6 +1,8 @@
 #include <bits/stdc++.h>
 using namespace std;
 
+#include "simulator.h"
+
 typedef long long ll;
 typedef pair<int, int> pii;
 
@@ -66,6 +68,7 @@ void update_time_avg_stats(void);
 float expon(float mean);
 int main() /* Main function. */
 {
+	Simulator s1;
 	/* Open input and output files. */
 	infile = fopen("mm1.in", "r");
 	outfile = fopen("mm1.out", "w");

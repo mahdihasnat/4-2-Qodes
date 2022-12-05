@@ -14,7 +14,7 @@ clean :
 
 .PHONY : clean
 
-a.out : main.o 
+a.out : main.o simulator.o
 	${CC} *.o -o a.out
 
 # run the executable
@@ -23,7 +23,7 @@ run : a.out
 
 # compile and run
 all : run
-
+	
 time : timer.o
 	g++ -o time timer.o
 	./time
