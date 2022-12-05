@@ -18,8 +18,8 @@ class Simulator
 
 	enum SERVER_STATUS
 	{
-		IDLE,
-		BUSY
+		IDLE = 0,
+		BUSY = 1
 	};
 	enum EVENT_TYPE
 	{
@@ -74,10 +74,8 @@ class Simulator
 		/* Check to see whether the event list is empty. */
 		if (next_event_type == NONE)
 		{
-			/* The event list is empty, so stop the simulation. */
+			cout<<"Event list empty at time "<<sim_time<<endl;
 			assert(0);
-			// fprintf(outfile, "\nEvent list empty at time %f", sim_time);
-			// exit(1);
 		}
 		/* The event list is not empty, so advance the simulation clock. */
 		sim_time = min_time_next_event;
@@ -103,27 +101,17 @@ class Simulator
 		/* Check to see whether server is busy. */
 		if (server_status == BUSY)
 		{
-			/* Server is busy, so increment number of customers in queue. */
+			/* Server is busy, so add customer in queue. */
 			q.push(sim_time);
-			// /* Check to see whether an overflow condition exists. */
-			// if (num_in_q > Q_LIMIT)
-			// {
-			// 	/* The queue has overflowed, so stop the simulation. */
-			// 	fprintf(outfile, "\nOverflow of the array time_arrival at");
-			// 	fprintf(outfile, " time %f", sim_time);
-			// 	exit(2);
-			// }
-			// /* There is still room in the queue, so store the time of arrival of the
-			// arriving customer at the (new) end of time_arrival. */
-			// time_arrival[num_in_q] = sim_time;
 		}
 		else
 		{
 			/* Server is idle, so arriving customer has a delay of zero. (The
 			following two statements are for program clarity and do not affect
 			the results of the simulation.) */
-			delay = 0.0;
-			total_of_delays += delay;
+			// delay = 0.0;
+			// total_of_delays += delay;
+
 			/* Increment the number of customers delayed, and make server busy. */
 			++num_custs_delayed;
 			server_status = BUSY;
@@ -187,18 +175,15 @@ public:
 		this->generator = generator;
 	}
 
-	void simulate(int num_of_customer)
+	void simulate(int num_delays_required)
 	{
-		/* Initialize the simulation. */
 		initialize();
-		/* Run the simulation while more delays are still needed. */
-		while (num_custs_delayed < num_of_customer)
+		while (num_custs_delayed < num_delays_required)
 		{
-			/* Determine the next event. */
 			timing();
-			/* Update time-average statistical accumulators. */
+			// cout<<"Event type: "<<next_event_type<<endl;
+			// cout<<"Time: "<<sim_time<<endl;
 			update_time_avg_stats();
-			// /* Invoke the appropriate event function. */
 			switch (next_event_type)
 			{
 			case ARRIVE:
@@ -209,7 +194,6 @@ public:
 				break;
 			}
 		}
-		/* Invoke the report generator and end the simulation. */
 		report();
 	}
 

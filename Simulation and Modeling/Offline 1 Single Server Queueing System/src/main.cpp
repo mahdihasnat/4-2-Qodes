@@ -41,7 +41,8 @@ ostream &operator<<(ostream &os, const vector<T> &a)
 
 using Ftype = double;
 using URNG = mt19937;
-URNG generator(chrono::steady_clock::now().time_since_epoch().count());
+auto seed = chrono::steady_clock::now().time_since_epoch().count();
+URNG generator(seed);
 Ftype avg(exponential_distribution<Ftype> ed)
 {
 	Ftype sum = 0;
@@ -64,12 +65,11 @@ int main() /* Main function. */
 	int num_delays_required;
 	in >> mean_interarrival >> mean_service >> num_delays_required;
 
-	out << "Single-server queueing system" << endl
-		<< endl;
-	out << "Mean interarrival time = " << mean_interarrival << " minutes" << endl;
-	out << "Mean service time = " << mean_service << " minutes" << endl;
-	out << "Number of customers = " << num_delays_required << endl
-		<< endl;
+	out<<"Single-server queueing system"<<endl<<endl;
+	out<<"Mean interarrival time = "<<mean_interarrival<<" minutes"<<endl;
+	out<<"Mean service time = "<<mean_service<<" minutes"<<endl;
+	out<<"Number of customers = "<<num_delays_required<<endl;
+	out<<"Generator seed = "<<seed<<endl<<endl;
 
 	exponential_distribution<Ftype> iad(1.0 / mean_interarrival);
 	exponential_distribution<Ftype> std(1.0 / mean_service);
@@ -100,6 +100,8 @@ int main() /* Main function. */
 	out << "Average number in queue: " << avg_num_in_q << endl;
 	out << "Server utilization: " << server_utilization << endl;
 	out << "Time simulation ended: " << simulation_end_time << endl;
+
+	
 
 	return 0;
 }

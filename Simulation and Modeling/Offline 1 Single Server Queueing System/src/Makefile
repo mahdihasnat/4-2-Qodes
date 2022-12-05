@@ -1,7 +1,7 @@
 MAKEFLAGS += -j8
 
 CC = g++ -std=c++17 -Wall
-PARAMETERS = input.txt
+PARAMETERS = 
 # compile every cpp file in this directory with g++ , and target
 
 # the object file in the same directory
