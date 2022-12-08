@@ -5,7 +5,21 @@ def load_dataset():
     :return:
     """
     # todo: implement
-    return None, None
+    # CSV reader 
+    # import csv
+    filename = 'data_banknote_authentication.csv'
+    # file = open(filename, 'r')
+    # csvreader = csv.reader(file)
+    # print(next(csvreader))
+    
+    import numpy as np
+    data = np.genfromtxt(filename, delimiter=',', skip_header=1,dtype=np.float64)
+    # print(data.shape)
+    data1 , data2 = np.split(data, [4], axis=1)
+    # print(data1.shape)
+    # print(data2.shape)
+    
+    return data1, data2
 
 
 def split_dataset(X, y, test_size, shuffle):
