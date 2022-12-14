@@ -1,3 +1,5 @@
+import numpy as np
+
 def load_dataset():
     """
     function for reading data from csv
@@ -5,20 +7,10 @@ def load_dataset():
     :return:
     """
     # todo: implement
-    # CSV reader 
-    # import csv
     filename = 'data_banknote_authentication.csv'
-    # file = open(filename, 'r')
-    # csvreader = csv.reader(file)
-    # print(next(csvreader))
     
-    import numpy as np
     data = np.genfromtxt(filename, delimiter=',', skip_header=1,dtype=np.float64)
-    # print(data.shape)
     data1 , data2 = np.split(data, [4], axis=1)
-    # print(data1.shape)
-    # print(data2.shape)
-    
     return data1, data2
 
 
@@ -32,7 +24,17 @@ def split_dataset(X, y, test_size, shuffle):
     :return:
     """
     # todo: implement.
-    X_train, y_train, X_test, y_test = None, None, None, None
+    assert X.shape[0] == y.shape[0], "X and y have different number of rows"
+    if shuffle:
+        permutation = np.random.permutation(X.shape[0])
+        X = X[permutation]
+        y = y[permutation]
+    
+    test_length = int(X.shape[0] * test_size)
+    train_length = X.shape[0] - test_length
+    X_train,X_test = np.split(X, [train_length], axis=0)
+    y_train,y_test = np.split(y, [train_length], axis=0)
+    # X_train, y_train, X_test, y_test = None, None, None, None
     return X_train, y_train, X_test, y_test
 
 

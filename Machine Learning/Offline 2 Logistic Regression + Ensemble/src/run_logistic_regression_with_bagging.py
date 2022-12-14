@@ -5,7 +5,7 @@ main code that you will run
 from linear_model import LogisticRegression
 from ensemble import BaggingClassifier
 from data_handler import load_dataset, split_dataset
-from metrics import precision_score, recall_score, f1_score
+from metrics import Metrics
 
 if __name__ == '__main__':
     # data load
@@ -24,7 +24,8 @@ if __name__ == '__main__':
     y_pred = classifier.predict(X_test)
 
     # performance on test set
-    print('Accuracy ', accuracy(y_true=y_test, y_pred=y_pred))
-    print('Recall score ', recall_score(y_true=y_test, y_pred=y_pred))
-    print('Precision score ', precision_score(y_true=y_test, y_pred=y_pred))
-    print('F1 score ', f1_score(y_true=y_test, y_pred=y_pred))
+    metrics = Metrics(y_true=y_test, y_pred=y_pred)
+    print('Accuracy ', metrics.accuracy)
+    print('Recall score ', metrics.recall)
+    print('Precision score ', metrics.precision)
+    print('F1 score ', metrics.f1_score)
