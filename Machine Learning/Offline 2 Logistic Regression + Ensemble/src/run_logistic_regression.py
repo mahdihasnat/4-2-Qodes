@@ -12,7 +12,7 @@ if __name__ == '__main__':
     # data load
     X, y = load_dataset()
     # split train and test
-    X_train, y_train, X_test, y_test = split_dataset(X, y, test_size=0.2, shuffle=True)
+    X_train, y_train, X_test, y_test = split_dataset(X, y, test_size=0.2, shuffle=False)
     # print("X_train ", X_train)
     # print("y_train ", y_train)
     # print("X_test ", X_test)

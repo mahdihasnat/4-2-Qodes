@@ -7,9 +7,9 @@ def load_dataset():
     :return:
     """
     # todo: implement
-    filename = 'data_banknote_authentication.csv'
+    filename = 'data_banknote_authentication.txt'
     
-    data = np.genfromtxt(filename, delimiter=',', skip_header=1,dtype=np.float64)
+    data = np.genfromtxt(filename, delimiter=',', skip_header=0,dtype=np.float64)
     data1 , data2 = np.split(data, [4], axis=1)
     return data1, data2
 
