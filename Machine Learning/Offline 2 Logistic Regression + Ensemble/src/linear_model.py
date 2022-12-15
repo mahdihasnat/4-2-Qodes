@@ -59,7 +59,7 @@ class LogisticRegression:
         self.theta = np.zeros((X.shape[1],1))
         
         self.__fit_with_cost_minimization(X, y)
-        self.__fit_with_likelihood_maximization(X, y)
+        # self.__fit_with_likelihood_maximization(X, y)
         
         
     def predict(self, X):
