@@ -8,20 +8,22 @@ if __name__ == '__main__':
     start_time = time.time()
     # data load
     X, y = load_dataset()
+    
+    test_size = 0.9
+    shuffle = True
     # split train and test
-    X_train, y_train, X_test, y_test = split_dataset(X, y, test_size=0.2, shuffle=True)
-    # print("X_train ", X_train)
-    # print("y_train ", y_train)
-    # print("X_test ", X_test)
-    # print("y_test ", y_test)
+    X_train, y_train, X_test, y_test = split_dataset(X, y, 
+                                test_size=test_size, shuffle=shuffle)
+    
+    print("shape of X_train ", X_train.shape)
+    print("shape of X_test ", X_test.shape)
     
     # training
     params = dict()
     params['alpha'] = 0.01
-    params['max_iter'] = 100000
+    params['max_iter'] = 1000
     
     classifier = LogisticRegression(params)
-    # classifier = LogisticRegression()
     classifier.fit(X_train, y_train)
 
     # testing
@@ -33,6 +35,11 @@ if __name__ == '__main__':
     
     # performance on test set
     metrics = Metrics(y_true=y_test, y_pred=y_pred)
+    print('Test set size ', test_size)
+    print('Shuffle ', shuffle)
+    print("Number of iterations ", params['max_iter'])
+    print("Learning rate ", params['alpha'])
+    print("----------------------------------")
     print('Accuracy ', metrics.accuracy)
     print('Recall score ', metrics.recall)
     print('Precision score ', metrics.precision)

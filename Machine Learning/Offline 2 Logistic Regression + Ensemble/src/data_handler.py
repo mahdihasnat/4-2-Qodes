@@ -6,11 +6,14 @@ def load_dataset():
     and processing to return a 2D feature matrix and a vector of class
     :return:
     """
-    # todo: implement
     filename = 'data_banknote_authentication.txt'
     
     data = np.genfromtxt(filename, delimiter=',', skip_header=0,dtype=np.float64)
+    
+    
     data1 , data2 = np.split(data, [4], axis=1)
+    
+    
     return data1, data2
 
 
@@ -23,7 +26,6 @@ def split_dataset(X, y, test_size, shuffle):
     :param bool shuffle: whether to shuffle the data before splitting
     :return:
     """
-    # todo: implement.
     assert X.shape[0] == y.shape[0], "X and y have different number of rows"
     if shuffle:
         permutation = np.random.permutation(X.shape[0])
@@ -34,7 +36,26 @@ def split_dataset(X, y, test_size, shuffle):
     train_length = X.shape[0] - test_length
     X_train,X_test = np.split(X, [train_length], axis=0)
     y_train,y_test = np.split(y, [train_length], axis=0)
-    # X_train, y_train, X_test, y_test = None, None, None, None
+    
+    
+    # # adding noise data
+    # noise_data_size = round(X_train.shape[0]*1.0)
+    # print("noise data size ", noise_data_size)
+    # # for each feature : calc min and max and then generate noise data
+    # X_noise = np.zeros((noise_data_size, X_train.shape[1]))
+    # for i in range(X_train.shape[1]):
+    #     min = np.min(X_train[:,i])
+    #     max = np.max(X_train[:,i])
+    #     X_noise[:,i] = np.random.uniform(min, max, noise_data_size)
+    
+    # y_noise = np.zeros((noise_data_size, 1))
+    # y_noise[:,0] = np.random.randint(0, 2, noise_data_size)
+    
+    # X_train = np.concatenate((X_train, X_noise), axis=0)
+    # y_train = np.concatenate((y_train, y_noise), axis=0)  
+    
+    
+    
     return X_train, y_train, X_test, y_test
 
 
@@ -46,8 +67,12 @@ def bagging_sampler(X, y):
     :param y:
     :return:
     """
-    # todo: implement
-    X_sample, y_sample = None, None
+    
+    indices = np.random.choice(X.shape[0], size=X.shape[0], replace=True)
+    X_sample = X[indices]
+    y_sample = y[indices]
+    
     assert X_sample.shape == X.shape
     assert y_sample.shape == y.shape
+    
     return X_sample, y_sample

@@ -5,7 +5,6 @@ class LogisticRegression:
         figure out necessary params to take as input
         :param params:
         """
-        # todo: implement
         assert 'alpha' in params , "alpha not found"
         assert 'max_iter' in params , "max_iter not found"
         
@@ -29,8 +28,8 @@ class LogisticRegression:
             h_minus_y = h - y
             grad = np.dot(X.T, h_minus_y) / X.shape[0]
             self.theta -= grad* self.alpha
-            if i%1000 == 0:
-                print("iteration ", i, "cost ", np.sum(-y*np.log(h) - (1-y)*np.log(1-h)))
+            # if i%1000 == 0:
+            #     print("iteration ", i, "cost ", np.sum(-y*np.log(h) - (1-y)*np.log(1-h)))
     
     def __fit_with_likelihood_maximization(self, X, y):
         
@@ -39,9 +38,9 @@ class LogisticRegression:
             y_minus_h = y - h
             grad = np.dot(X.T, y_minus_h) / X.shape[0]
             self.theta += grad* self.alpha
-            if i%1000 == 0:
-                z = np.dot(X, self.theta)
-                print("iteration ", i, "log likelihood ", np.sum(y*z - np.log(1 + np.exp(z))))
+            # if i%1000 == 0:
+            #     z = np.dot(X, self.theta)
+            #     print("iteration ", i, "log likelihood ", np.sum(y*z - np.log(1 + np.exp(z))))
     
     def fit(self, X, y):
         """
@@ -68,10 +67,7 @@ class LogisticRegression:
         :param X:
         :return:
         """
-        # todo: implement
         # add bias
         X = np.concatenate((np.ones((X.shape[0], 1)), X), axis=1)
-        # print("shape of X ", X.shape)
         h = self.__hypothesis(X)
-        # print("shape of h ", h.shape)
         return np.where(h >= 0.5, 1, 0)
