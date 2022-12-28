@@ -6,65 +6,100 @@ using namespace std;
 #define DBG(a) cerr << "line " << __LINE__ << " : " << #a << " --> " << (a) << endl
 #define NL cerr << endl
 
+#include "distributions.h"
+
 template <class Ftype = double,
 		  class URNG = default_random_engine,
-		  class IAD = exponential_distribution<Ftype>,
-		  class STD = exponential_distribution<Ftype>>
+		  class IDD = my_exponential_distribution<Ftype>,	// inter demand distribution
+		  class DLD = my_uniform_real_distribution<Ftype>,	// delivery lag distribution
+		  class DSD = my_discrete_distribution<int, Ftype>> // delivery size distribution
 class Simulator
 {
-	IAD iad;
-	STD std;
 	URNG generator;
+	IDD idd;
+	DLD dld;
+	DSD dsd;
 
-	enum SERVER_STATUS
-	{
-		IDLE = 0,
-		BUSY = 1
-	};
 	enum EVENT_TYPE
 	{
 		NONE = 0,
-		ARRIVE = 1,
-		DEPART = 2
+		ORDER_ARRIVAL = 1,
+		DEMAND = 2,
+		END_SIMULATION = 3,
+		EVALUATE = 4
 	};
+
+	// simulation clock
 	Ftype sim_time;
-	SERVER_STATUS server_status;
-	queue<Ftype> q;
 	Ftype time_last_event;
-	int num_custs_delayed;
-	Ftype total_of_delays;
-	Ftype area_num_in_q;
-	Ftype area_server_status;
+
 	EVENT_TYPE next_event_type;
 
-#define num_events 2
+	// state variables
+	int inv_level;
+
+	// amount for next order arrival
+	int amount;
+
+	// statistical counters
+	Ftype total_ordering_cost;
+	Ftype area_holding;
+	Ftype area_shortage;
+
+	// final results
+	Ftype avg_holding_cost;
+	Ftype avg_ordering_cost;
+	Ftype avg_shortage_cost;
+
+	// event list
+#define num_events 4
 	Ftype time_next_event[num_events + 1];
 
-	void initialize()
+	// simulation parameters
+	int initial_inv_level;
+	int num_months;
+
+	// costs
+	Ftype holding_cost;
+	Ftype shortage_cost;
+	Ftype setup_cost;
+	Ftype incremental_cost;
+
+	void initialize(void) /* Initialization function. */
 	{
 		/* Initialize the simulation clock. */
-		sim_time = 0.0;
+
+		sim_time = 0;
+
 		/* Initialize the state variables. */
-		server_status = SERVER_STATUS::IDLE;
-		while (!q.empty())
-			q.pop();
-		time_last_event = 0.0;
+
+		inv_level = initial_inv_level;
+		time_last_event = 0;
+
 		/* Initialize the statistical counters. */
-		num_custs_delayed = 0;
-		total_of_delays = 0.0;
-		area_num_in_q = 0.0;
-		area_server_status = 0.0;
-		/* Initialize event list. Since no customers are present, the departure
-		(service completion) event is eliminated from consideration. */
-		time_next_event[ARRIVE] = sim_time + iad(generator);
-		time_next_event[DEPART] = 1.0e+30;
+
+		total_ordering_cost = 0;
+		area_holding = 0;
+		area_shortage = 0;
+
+		/* Initialize the event list.  Since no order is outstanding, the order-
+		arrival event is eliminated from consideration. */
+
+		time_next_event[ORDER_ARRIVAL] = numeric_limits<Ftype>::max();
+		time_next_event[DEMAND] = sim_time + idd(generator);
+		time_next_event[END_SIMULATION] = num_months;
+		time_next_event[EVALUATE] = 0;
 	}
+
 	void timing(void) /* Timing function. */
 	{
 		Ftype min_time_next_event = numeric_limits<Ftype>::max();
+
 		next_event_type = NONE;
+
 		/* Determine the event type of the next event to occur. */
-		for (const auto event : {ARRIVE, DEPART})
+
+		for (const auto event : {ORDER_ARRIVAL, DEMAND, END_SIMULATION, EVALUATE})
 			if (time_next_event[event] < min_time_next_event)
 			{
 				min_time_next_event = time_next_event[event];
@@ -72,146 +107,193 @@ class Simulator
 			}
 
 		/* Check to see whether the event list is empty. */
+
 		if (next_event_type == NONE)
 		{
-			cout<<"Event list empty at time "<<sim_time<<endl;
-			assert(0);
+
+			/* The event list is empty, so stop the simulation */
+			cerr << "Event list empty at time " << sim_time << endl;
+			assert(false);
+			exit(1);
 		}
+
 		/* The event list is not empty, so advance the simulation clock. */
+
 		sim_time = min_time_next_event;
 	}
+
 	void update_time_avg_stats(void) /* Update area accumulators for time-average
-	statistics. */
+									   statistics. */
 	{
 		Ftype time_since_last_event;
+
 		/* Compute time since last event, and update last-event-time marker. */
+
 		time_since_last_event = sim_time - time_last_event;
 		time_last_event = sim_time;
-		/* Update area under number-in-queue function. */
-		area_num_in_q += Ftype(q.size()) * time_since_last_event;
-		/* Update area under server-busy indicator function. */
-		area_server_status += server_status * time_since_last_event;
+
+		/* Determine the status of the inventory level during the previous interval.
+		If the inventory level during the previous interval was negative, update
+		area_shortage.  If it was positive, update area_holding.  If it was zero,
+		no update is needed. */
+
+		if (inv_level < 0)
+			area_shortage -= inv_level * time_since_last_event;
+		else if (inv_level > 0)
+			area_holding += inv_level * time_since_last_event;
 	}
 
-	void arrive(void) /* Arrival event function. */
+	void order_arrival(void) /* Order arrival event function. */
 	{
-		Ftype delay;
-		/* Schedule next arrival. */
-		time_next_event[ARRIVE] = sim_time + iad(generator);
-		/* Check to see whether server is busy. */
-		if (server_status == BUSY)
-		{
-			/* Server is busy, so add customer in queue. */
-			q.push(sim_time);
-		}
-		else
-		{
-			/* Server is idle, so arriving customer has a delay of zero. (The
-			following two statements are for program clarity and do not affect
-			the results of the simulation.) */
-			// delay = 0.0;
-			// total_of_delays += delay;
+		/* Increment the inventory level by the amount ordered. */
 
-			/* Increment the number of customers delayed, and make server busy. */
-			++num_custs_delayed;
-			server_status = BUSY;
-			/* Schedule a departure (service completion). */
-			time_next_event[DEPART] = sim_time + std(generator);
-		}
+		inv_level += amount;
+
+		/* Since no order is now outstanding, eliminate the order-arrival event from
+		consideration. */
+
+		time_next_event[ORDER_ARRIVAL] = numeric_limits<Ftype>::max();
+	}
+	void demand(void) /* Demand event function. */
+	{
+		/* Decrement the inventory level by a generated demand size. */
+
+		inv_level -= dsd(generator);
+
+		/* Schedule the time of the next demand. */
+
+		time_next_event[DEMAND] = sim_time + idd(generator);
 	}
 
-	void depart(void) /* Departure event function. */
+	void evaluate(int smalls, int bigs) /* Inventory-evaluation event function. */
 	{
-		int i;
-		Ftype delay;
-		/* Check to see whether the queue is empty. */
-		if (q.empty())
+		/* Check whether the inventory level is less than smalls. */
+
+		if (inv_level < smalls)
 		{
-			/* The queue is empty so make the server idle and eliminate the
-			departure (service completion) event from consideration. */
-			server_status = IDLE;
-			time_next_event[DEPART] = numeric_limits<Ftype>::max();
+
+			/* The inventory level is less than smalls, so place an order for the
+			appropriate amount. */
+
+			amount = bigs - inv_level;
+			total_ordering_cost += setup_cost + incremental_cost * amount;
+
+			/* Schedule the arrival of the order. */
+			// via delivery lag distribution (dld)
+			time_next_event[ORDER_ARRIVAL] = sim_time + dld(generator);
 		}
-		else
-		{
-			/* The queue is nonempty, so decrement the number of customers in
-			queue. */
-			Ftype time_arrival = q.front();
-			q.pop();
-			/* Compute the delay of the customer who is beginning service and update
-			the total delay accumulator. */
-			delay = sim_time - time_arrival;
-			total_of_delays += delay;
-			/* Increment the number of customers delayed, and schedule departure. */
-			++num_custs_delayed;
-			time_next_event[DEPART] = sim_time + std(generator);
-		}
+
+		/* Regardless of the place-order decision, schedule the next inventory
+		evaluation. */
+
+		time_next_event[EVALUATE] = sim_time + 1.0;
 	}
 
 	void report(void) /* Report generator function. */
 	{
 		/* Compute and write estimates of desired measures of performance. */
-		avg_delays_in_q = total_of_delays / num_custs_delayed;
-		avg_num_in_q = area_num_in_q / sim_time;
-		server_utilization = area_server_status / sim_time;
-		simulation_end_time = sim_time;
+		avg_ordering_cost = total_ordering_cost / num_months;
+		avg_holding_cost = holding_cost * area_holding / num_months;
+		avg_shortage_cost = shortage_cost * area_shortage / num_months;
 	}
 
 public:
-	Ftype avg_delays_in_q;
-	Ftype avg_num_in_q;
-	Ftype server_utilization;
-	Ftype simulation_end_time;
-
-	Simulator(IAD iad = IAD(),
-			  STD std = STD())
-		: iad(iad),
-		  std(std)
+	Simulator(IDD idd, DLD dld, DSD dsd) : idd(idd), dld(dld), dsd(dsd)
 	{
 	}
 
+	void set_initial_inv_level(int initial_inv_level)
+	{
+		this->initial_inv_level = initial_inv_level;
+	}
+	void set_num_months(int num_months)
+	{
+		this->num_months = num_months;
+	}
+	void set_holding_cost(Ftype holding_cost)
+	{
+		this->holding_cost = holding_cost;
+	}
+	void set_shortage_cost(Ftype shortage_cost)
+	{
+		this->shortage_cost = shortage_cost;
+	}
+	void set_setup_cost(Ftype setup_cost)
+	{
+		this->setup_cost = setup_cost;
+	}
+	void set_incremental_cost(Ftype incremental_cost)
+	{
+		this->incremental_cost = incremental_cost;
+	}
 	void set_generator(URNG generator)
 	{
 		this->generator = generator;
 	}
 
-	void simulate(int num_delays_required)
+	Ftype get_avg_holding_cost(void)
 	{
-		initialize();
-		while (num_custs_delayed < num_delays_required)
-		{
-			timing();
-			// cout<<"Event type: "<<next_event_type<<endl;
-			// cout<<"Time: "<<sim_time<<endl;
-			update_time_avg_stats();
-			switch (next_event_type)
-			{
-			case ARRIVE:
-				arrive();
-				break;
-			case DEPART:
-				depart();
-				break;
-			}
-		}
-		report();
+		return avg_holding_cost;
+	}
+	Ftype get_avg_ordering_cost(void)
+	{
+		return avg_ordering_cost;
+	}
+	Ftype get_avg_shortage_cost(void)
+	{
+		return avg_shortage_cost;
+	}
+	Ftype get_avg_total_cost(void)
+	{
+		return avg_holding_cost + avg_ordering_cost + avg_shortage_cost;
 	}
 
-	Ftype get_avg_delays_in_q() const
+	void simulate(int smalls, int bigs)
 	{
-		return avg_delays_in_q;
-	}
-	Ftype get_avg_num_in_q() const
-	{
-		return avg_num_in_q;
-	}
-	Ftype get_server_utilization() const
-	{
-		return server_utilization;
-	}
-	Ftype get_simulation_end_time() const
-	{
-		return simulation_end_time;
+
+		initialize();
+
+		/* Run the simulation until it terminates after an end-simulation event
+		   (type 3) occurs. */
+
+		do
+		{
+
+			/* Determine the next event. */
+
+			timing();
+
+			/* Update time-average statistical accumulators. */
+
+			update_time_avg_stats();
+
+			/* Invoke the appropriate event function. */
+
+			switch (next_event_type)
+			{
+			case NONE:
+				cerr << "ERROR: next_event_type is NONE.";
+				assert(0);
+				break;
+			case ORDER_ARRIVAL:
+				order_arrival();
+				break;
+			case DEMAND:
+				demand();
+				break;
+			case EVALUATE:
+				evaluate(smalls, bigs);
+				break;
+			case END_SIMULATION:
+				report();
+				break;
+			}
+
+			/* If the event just executed was not the end-simulation event (type 3),
+			   continue simulating.  Otherwise, end the simulation for the current
+			   (s,S) pair and go on to the next pair (if any). */
+
+		} while (next_event_type != END_SIMULATION);
 	}
 };
 
