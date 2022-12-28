@@ -38,6 +38,7 @@ ostream &operator<<(ostream &os, const vector<T> &a)
 	return os;
 }
 #include "simulator.h"
+#include "distributions.h"
 
 using Ftype = double;
 using URNG = mt19937;
@@ -57,51 +58,56 @@ Ftype avg(exponential_distribution<Ftype> ed)
 int main() /* Main function. */
 {
 
-	ofstream out("mm1.out");
+	ofstream out("inv.out");
 	out << setprecision(10);
-	ifstream in("mm1.in");
-
-	Ftype mean_interarrival, mean_service;
-	int num_delays_required;
-	in >> mean_interarrival >> mean_service >> num_delays_required;
-
-	out<<"Single-server queueing system"<<endl<<endl;
-	out<<"Mean interarrival time = "<<mean_interarrival<<" minutes"<<endl;
-	out<<"Mean service time = "<<mean_service<<" minutes"<<endl;
-	out<<"Number of customers = "<<num_delays_required<<endl;
-	out<<"Generator seed = "<<seed<<endl<<endl;
-
-	exponential_distribution<Ftype> iad(1.0 / mean_interarrival);
-	exponential_distribution<Ftype> std(1.0 / mean_service);
-
-	Simulator<Ftype, URNG> s1(iad, std);
-	s1.set_generator(generator);
-	s1.simulate(num_delays_required);
-
-	out << "Simulation results:" << endl
-		<< endl;
-	out << "Average delay in queue: " << s1.get_avg_delays_in_q() << endl;
-	out << "Average number in queue: " << s1.get_avg_num_in_q() << endl;
-	out << "Server utilization: " << s1.get_server_utilization() << endl;
-	out << "Time simulation ended: " << s1.get_simulation_end_time() << endl
-		<< endl;
-
-	Ftype lambda = 1.0 / mean_interarrival;
-	Ftype mu = 1.0 / mean_service;
-	Ftype avg_delay_in_q = lambda / (mu * (mu - lambda));
-	Ftype avg_num_in_q = lambda * lambda / (mu * (mu - lambda));
-	Ftype server_utilization = lambda / mu;
-	Ftype avg_delay_in_system = 1 / (mu - lambda);
-	Ftype simulation_end_time = avg_delay_in_system * num_delays_required;
-
-	out << "Theoretical values:" << endl
-		<< endl;
-	out << "Average delay in queue: " << avg_delay_in_q << endl;
-	out << "Average number in queue: " << avg_num_in_q << endl;
-	out << "Server utilization: " << server_utilization << endl;
-	out << "Time simulation ended: " << simulation_end_time << endl;
-
+	ifstream in("inv.in");
 	
+	// num_months, &num_policies, &num_values_demand,
+    //        &mean_interdemand, &setup_cost, &incremental_cost, &holding_cost,
+    //        &shortage_cost, &minlag, &maxlag);
+
+	int initial_inv_level;
+	int num_months;
+	int num_policies;
+	int num_values_demand;
+
+
+	in >> initial_inv_level >> num_months >> 
+				num_policies >> num_values_demand;
+
+	Ftype mean_interdemand;
+	Ftype setup_cost;
+	Ftype incremental_cost;
+	Ftype holding_cost;
+	Ftype shortage_cost;
+	Ftype minlag;
+	Ftype maxlag;
+
+	in >> mean_interdemand >> setup_cost >> incremental_cost 
+			>> holding_cost >> shortage_cost >> minlag >> maxlag;
+
+	DBG(initial_inv_level);
+	DBG(num_months);
+	DBG(num_policies);
+	DBG(num_values_demand);
+	DBG(mean_interdemand);
+	DBG(setup_cost);
+	DBG(incremental_cost);
+	DBG(holding_cost);
+	DBG(shortage_cost);
+	DBG(minlag);
+	DBG(maxlag);
+
+	vector<Ftype> prob_distrib_demand(num_values_demand+1,0);
+	for(int i=1;i<=num_values_demand;i++)
+	{
+		in >> prob_distrib_demand[i];
+	}
+	DBG(prob_distrib_demand);
+
+	my_discrete_distribution<int,Ftype> dd(prob_distrib_demand);
+	DBG(dd(generator));
+
 
 	return 0;
 }
