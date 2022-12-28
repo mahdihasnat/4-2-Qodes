@@ -16,13 +16,11 @@ class my_discrete_distribution
 	template<class URNG> IntType operator()(URNG& g)
 	{
 		FloatType r = FloatType(g()-g.min())/(g.max()-g.min());
-		// DBG(g.min());
-		// DBG(g.max());
-		// DBG(r);
+		// if(r==0) r = 1e-10;
 		int x = lower_bound(q_probs.begin(), q_probs.end(), r) - q_probs.begin();
 		assert(x < (int)q_probs.size());
-
-		return x;
+		assert(x>0);
+		return x;	
 	}
 };
 
