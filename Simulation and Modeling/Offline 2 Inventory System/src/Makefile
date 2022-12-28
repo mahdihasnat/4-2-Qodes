@@ -14,7 +14,7 @@ clean :
 
 .PHONY : clean
 
-a.out : inv.o lcgrand.o
+a.out : main.o
 	${CC} *.o -o a.out
 
 # run the executable
@@ -23,9 +23,6 @@ run : a.out
 
 new.out : main.o
 	${CC} main.o -o new.out
-
-new : new.out
-	./new.out ${PARAMETERS}
 
 # compile and run
 all : run
