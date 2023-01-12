@@ -80,8 +80,8 @@ class GMM:
             self.e_step(X)
             self.m_step(X)
             if i % 2 == 0:
-                print("mean = ", self.mu)
-                print("sigma = ", self.sigma)
+                # print("mean = ", self.mu)
+                # print("sigma = ", self.sigma)
                 print("iter = ", i, "log_likelihood = ", self.log_likelihood(X))
     
     def multivariate_normal(self, x, mu, sigma):
