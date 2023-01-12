@@ -96,15 +96,34 @@ class GMM:
             self.e_step(X)
             self.m_step(X)
             ll = self.log_likelihood(X)
-            print("Log likelihood = ", ll)
+            # print("Log likelihood = ", ll)
     
     def predict(self, X):
         assert self.mu is not None, "Model not trained"
         assert self.sigma is not None, "Model not trained"
         assert self.pi is not None, "Model not trained"
         assert X.shape[1] == self.d, "Dimension mismatch"
-        # return [self.multivariate_normal() for i in range(self.n_components)]
+        ret = np.array([  np.argmax(
+                np.array([ self.multivariate_normal(x,self.mu[j],self.sigma[j])*self.pi[j] for j in range(self.n_components) ])
+            ) for x in X])
+        return ret
     
     def multivariate_normal(self, x, mu, sigma):
+        # assert self.d == mu.shape[0], "Dimension mismatch"
         
-        return multivariate_normal.pdf(x, mean=mu, cov=sigma, allow_singular=True)
+        
+        # det = np.linalg.det(sigma)
+        # # if np.equal(det,0 ):
+        # #     sigma = sigma + 1e-6*np.eye(self.d)
+        # #     det = np.linalg.det(sigma)
+        # y = np.sqrt(((2*np.pi)**self.d) * det)
+        # x = np.exp(-0.5 * np.dot(np.dot((x-mu).T, np.linalg.inv(sigma)), (x-mu)))
+        # ret = x/y
+        
+        r2 = multivariate_normal.pdf(x, mean=mu, cov=sigma, allow_singular=True)
+        
+        # print("ret = ", ret)
+        # print("r2 = ", r2)
+        # assert np.equal(ret , r2)
+        
+        return r2
