@@ -48,8 +48,7 @@ class GMM:
         # print("X = ", X)
         self.gamma = np.array([ np.array( [ self.multivariate_normal(X[j],self.mu[i],self.sigma[i]) for j in range(self.n) ])
                 for i in range(self.n_components) ])
-        # self.gamma = np.array([ self.multivariate_normal(X,self.mu[i],self.sigma[i]) 
-        #         for i in range(self.n_components) ])
+        
         # print("gamma = ", self.gamma)
         # print("shape of gamma ", self.gamma.shape)
         
@@ -67,21 +66,27 @@ class GMM:
         # print("column_sum = ", column_sum)
         # print("shape of column_sum ", column_sum.shape)
         
-        self.pi = column_sum / self.n
-        # print("pi = ", self.pi)
-        # print("shape of pi ", self.pi.shape)
         
         self.mu = np.array([ np.dot(self.gamma[i], X) /column_sum[i] for i in range(self.n_components) ])
         # print("mu = ", self.mu)
         # print("shape of mu ", self.mu.shape)
         
-        self.sigma = np.array([ np.cov(X.T, aweights=self.gamma[i], ddof=0) for i in range(self.n_components) ])
+        self.sigma = np.array([ np.cov(X.T, aweights=(self.gamma[i]), ddof=0) for i in range(self.n_components) ])
         # print("sigma = ", self.sigma)
         # print("shape of sigma ", self.sigma.shape)
 
+        self.pi = column_sum / self.n
+        # print("pi = ", self.pi)
+        # print("shape of pi ", self.pi.shape)
         
     def log_likelihood(self, X):
-        pass
+        ret = 0
+        for i in range(self.n):
+            now = 0
+            for j in range(self.n_components):
+                now+=self.pi[j]*self.multivariate_normal(X[i],self.mu[j],self.sigma[j])
+            ret+=np.log(now)
+        return ret
     
  
     def fit(self, X):
@@ -90,8 +95,8 @@ class GMM:
         # for i in range(1):
             self.e_step(X)
             self.m_step(X)
-            self.log_likelihood(X)
-        
+            ll = self.log_likelihood(X)
+            print("Log likelihood = ", ll)
     
     def predict(self, X):
         assert self.mu is not None, "Model not trained"
@@ -101,9 +106,5 @@ class GMM:
         # return [self.multivariate_normal() for i in range(self.n_components)]
     
     def multivariate_normal(self, x, mu, sigma):
-        # print("shape of x ", x.shape)
-        diff = (x - mu)
-        # print("Shape of diff ", diff.shape)
-        # print("Shape of sigma ", sigma.shape)
-        return np.exp(-0.5 * np.dot(np.dot(diff.T, np.linalg.inv(sigma)), diff.T), dtype=DTYPE)/ \
-                np.sqrt((np.power(2 * np.pi,self.d, dtype=DTYPE) * np.linalg.det(sigma)), dtype=DTYPE)
+        
+        return multivariate_normal.pdf(x, mean=mu, cov=sigma, allow_singular=True)
