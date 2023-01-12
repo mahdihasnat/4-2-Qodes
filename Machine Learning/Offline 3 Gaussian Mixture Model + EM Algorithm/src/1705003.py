@@ -8,14 +8,18 @@ def main():
     print("type x = ", type(x))
     print("shape x = ", x.shape)
     
-    params = {}
-    params['n_components'] = 3
-    params['max_iter'] = 100
-    params['tol'] = 1e-6
-    g = GMM(**params)
-    g.fit(x)
-    y = g.predict(x)
-    print(y)
+    for k in range(1,11):
+        params = {}
+        params['n_components'] = k
+        params['max_iter'] = 100
+        params['tol'] = 1e-6
+        g = GMM(**params)
+        g.fit(x)
+        ll = g.log_likelihood(x)
+        print("k = ", k, "ll = ", ll)
+        
+        # y = g.predict(x)
+        # print(y)
 
 if __name__ == '__main__':
     main()
