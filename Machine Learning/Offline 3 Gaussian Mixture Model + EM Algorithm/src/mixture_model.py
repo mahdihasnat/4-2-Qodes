@@ -1,5 +1,5 @@
 import numpy as np
-
+from scipy.stats import multivariate_normal
 class GMM:
     
     def __init__(self,**kwargs):
@@ -34,7 +34,6 @@ class GMM:
         for i in range(self.n):
             for j in range(self.k):
                 val = self.multivariate_normal(X[i], self.mu[j], self.sigma[j])
-                print("val = ", val)
                 assert val.shape == ()
                 self.r[i][j] = self.pi[j] * val
             self.r[i] /= np.sum(self.r[i])
@@ -45,6 +44,18 @@ class GMM:
 
         Nk = np.sum(self.r, axis=0)
         assert Nk.shape == (self.k,)
+        
+        self.mu = np.zeros((self.k, self.d))
+        for i in range(self.k):
+            self.mu[i] = np.sum(self.r[:, i].reshape(-1, 1) * X, axis=0) / Nk[i]
+        assert self.mu.shape == (self.k, self.d)
+        
+        self.sigma = np.zeros((self.k, self.d, self.d))
+        for i in range(self.k):
+            diff = X - self.mu[i]
+            assert diff.shape == (self.n, self.d)
+            self.sigma[i] = np.dot( (self.r[:,i].reshape(-1,1)*diff).T , diff) / Nk[i]
+            assert self.sigma[i].shape == (self.d, self.d)
         
         self.pi = Nk / self.n
         assert self.pi.shape == (self.k,)
@@ -58,8 +69,16 @@ class GMM:
     def multivariate_normal(self, x, mu, sigma):
         det = np.linalg.det(sigma) 
         assert det.shape == ()
+        if det == 0:
+            sigma += 0.01 * np.identity(self.d)
+            det = np.linalg.det(sigma)
+        
         nom = np.exp(-0.5 * np.dot(np.dot((x - mu).T, np.linalg.inv(sigma)), (x - mu)))
         assert nom.shape == ()
         denominator = np.sqrt(det *((2 * np.pi) ** self.d))
         assert denominator.shape == ()
-        return nom / denominator
+        ret = nom / denominator
+        # print("ret = ", ret)
+        ret2 = multivariate_normal.pdf(x, mean=mu, cov=sigma,allow_singular=True)
+        # print("ret2 = ",ret2)
+        return ret

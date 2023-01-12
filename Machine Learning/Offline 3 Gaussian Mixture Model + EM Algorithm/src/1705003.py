@@ -11,7 +11,7 @@ def main():
     for k in range(3,4):
         params = {}
         params['k'] = k
-        params['max_iter'] = 100
+        params['max_iter'] = 10
         params['tol'] = 1e-6
         g = GMM(**params)
         g.fit(x)
