@@ -36,7 +36,11 @@ class GMM:
                 val = self.multivariate_normal(X[i], self.mu[j], self.sigma[j])
                 assert val.shape == ()
                 self.r[i][j] = self.pi[j] * val
-            self.r[i] /= np.sum(self.r[i])
+            den = np.sum(self.r[i])
+            # if abs(den)<1e-9:
+            #     den = 1e-6
+            self.r[i] /= den
+            
         
         
     def m_step(self, X):
@@ -59,26 +63,41 @@ class GMM:
         
         self.pi = Nk / self.n
         assert self.pi.shape == (self.k,)
-        
+    
+    def log_likelihood(self, X):
+        ret = 0
+        for i in range(self.n):
+            now = 0
+            for j in range(self.k):
+                now += self.pi[j] * self.multivariate_normal(X[i], self.mu[j], self.sigma[j])
+            ret += np.log(now)
+        return ret
+    
+    
     def fit(self, X):
         self.init(X)
         for i in range(self.max_iter):
             self.e_step(X)
             self.m_step(X)
+            if i % 2 == 0:
+                print("mean = ", self.mu)
+                print("sigma = ", self.sigma)
+                print("iter = ", i, "log_likelihood = ", self.log_likelihood(X))
     
     def multivariate_normal(self, x, mu, sigma):
-        det = np.linalg.det(sigma) 
-        assert det.shape == ()
-        if det == 0:
-            sigma += 0.01 * np.identity(self.d)
-            det = np.linalg.det(sigma)
+        # det = np.linalg.det(sigma) 
+        # assert det.shape == ()
+        # if det == 0:
+        #     sigma += 0.01 * np.identity(self.d)
+        #     det = np.linalg.det(sigma)
         
-        nom = np.exp(-0.5 * np.dot(np.dot((x - mu).T, np.linalg.inv(sigma)), (x - mu)))
-        assert nom.shape == ()
-        denominator = np.sqrt(det *((2 * np.pi) ** self.d))
-        assert denominator.shape == ()
-        ret = nom / denominator
+        # nom = np.exp(-0.5 * np.dot(np.dot((x - mu).T, np.linalg.inv(sigma)), (x - mu)))
+        # assert nom.shape == ()
+        # denominator = np.sqrt(det *((2 * np.pi) ** self.d))
+        # assert denominator.shape == ()
+        # ret = nom / denominator
         # print("ret = ", ret)
         ret2 = multivariate_normal.pdf(x, mean=mu, cov=sigma,allow_singular=True)
         # print("ret2 = ",ret2)
-        return ret
+        # assert np.abs(ret - ret2) < 1e-5
+        return ret2
