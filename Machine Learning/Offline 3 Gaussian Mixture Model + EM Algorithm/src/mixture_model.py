@@ -57,27 +57,40 @@ class GMM:
         
         
     def m_step(self, X):
-        assert X.shape == (self.n, self.d)
+        # assert X.shape == (self.n, self.d)
 
-        Nk = np.sum(self.r, axis=0)
-        # assert Nk.shape == (self.k,)
+        # Nk = np.sum(self.r, axis=0)
+        # # assert Nk.shape == (self.k,)
         
-        self.mu = np.zeros((self.k, self.d))
-        for i in range(self.k):
-            self.mu[i] = np.sum(self.r[:, i].reshape(-1, 1) * X, axis=0) / Nk[i]
-        # assert self.mu.shape == (self.k, self.d)
+        # self.mu = np.zeros((self.k, self.d))
+        # for i in range(self.k):
+        #     self.mu[i] = np.sum(self.r[:, i].reshape(-1, 1) * X, axis=0) / Nk[i]
+        # # assert self.mu.shape == (self.k, self.d)
+        
+        # self.sigma = np.zeros((self.k, self.d, self.d))
+        # for i in range(self.k):
+        #     diff = X - self.mu[i]
+        #     # assert diff.shape == (self.n, self.d)
+        #     self.sigma[i] = np.dot( (self.r[:,i].reshape(-1,1)*diff).T , diff) / Nk[i]
+        #     # assert self.sigma[i].shape == (self.d, self.d)
+        
+        # self.pi = Nk / self.n
+        # assert self.pi.shape == (self.k,)
+        
+        
+        # write m_step in vectorized form
+        Nk = np.sum(self.r, axis=0)
+        assert Nk.shape == (self.k,)
+        
+        self.mu = np.dot(self.r.T, X) / Nk.reshape(-1, 1)
+        assert self.mu.shape == (self.k, self.d)
         
         self.sigma = np.zeros((self.k, self.d, self.d))
         for i in range(self.k):
-            diff = X - self.mu[i]
-            # assert diff.shape == (self.n, self.d)
-            self.sigma[i] = np.dot( (self.r[:,i].reshape(-1,1)*diff).T , diff) / Nk[i]
-            # assert self.sigma[i].shape == (self.d, self.d)
+            self.sigma[i] = np.dot( (self.r[:,i].reshape(-1,1)*(X - self.mu[i])).T , (X - self.mu[i])) / Nk[i]
         
         self.pi = Nk / self.n
         assert self.pi.shape == (self.k,)
-        
-        
         
     
     def log_likelihood(self, X):
