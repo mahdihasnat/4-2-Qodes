@@ -30,10 +30,8 @@ class GMM:
         # write r in vectorized form
         self.r = np.zeros((self.n, self.k))
         for i in range(self.k):
-            distribution = multivariate_normal(
-                mean=self.mu[i], 
-                cov=self.sigma[i])
-            self.r[:,i] = distribution.pdf(X)
+            
+            self.r[:,i] = self.multivariate_normal(X, self.mu[i], self.sigma[i])
             
         
         numerator = self.r * self.pi
@@ -80,7 +78,7 @@ class GMM:
                 print("iter = ", i, "log_likelihood = ", self.log_likelihood(X))
     
     def multivariate_normal(self, x, mu, sigma):
-        mvn = multivariate_normal(mean=mu, cov=sigma)
+        mvn = multivariate_normal(mean=mu, cov=sigma,allow_singular=True)
         return mvn.pdf(x)
 
 
