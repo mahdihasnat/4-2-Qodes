@@ -1,6 +1,6 @@
 import numpy as np
 from scipy.stats import multivariate_normal
-
+import matplotlib.pyplot as plt
 
 class GMM:
     
@@ -124,12 +124,17 @@ class GMM:
     
     def fit(self, X):
         self.init(X)
+        last_log_likelihood = np.inf
         for i in range(self.max_iter):
             self.e_step(X)
             self.m_step(X)
+            ll = self.log_likelihood(X)
+            if np.abs(last_log_likelihood-ll) < self.tol:
+                break
+            last_log_likelihood = ll
             if self.verbose and i % 5 == 0:
-                # print("mean = ", self.mu)
-                # print("sigma = ", self.sigma)
+                print("mean = ", self.mu)
+                print("sigma = ", self.sigma)
                 print("iter = ", i, "log_likelihood = ", self.log_likelihood(X))
     
     def multivariate_normal(self, x, mu, sigma):
@@ -150,49 +155,26 @@ class GMM:
         # assert np.abs(ret - ret2) < 1e-5
         return ret2
 
-    # def plot_gaussian(self, data, means, covariances, K, responsibilities):
 
-    #     plt.scatter(data[:, 0], data[:, 1], c=responsibilities.argmax(axis=1), cmap='viridis', s=40, edgecolor='k',
-    #                 alpha=0.2, marker='.')
-    #     x, y = np.mgrid[np.min(data[:, 0]):np.max(data[:, 0]):.01, np.min(data[:, 1]):np.max(data[:, 1]):.01]
-    #     positions = np.dstack((x, y))
-    #     for j in range(K):
-    #         rv = mvn(means[j], covariances[j])
-    #         plt.contour(x, y, rv.pdf(positions), colors='black', alpha=0.6, linewidths=1)
+    def predict(self,X):
+        pass
 
-    # def animate(self, data, iterations = 100, n_components = 3):
+    def animate(self, X):
+        
+        self.init()
+        assert self.d == 2 , "only support 2D data"
 
-    #     K = n_components
-    #     n_samples, n_features = data.shape
+        fig = plt.figure()
+        plt.ion()
 
-    #     if n_features != 2:
-    #         print("Drawing animation is only supported for 2D data")
-    #         return
+        for i in range(self.max_iter):
+            self.e_step(X)
+            self.m_step(X)
+            
+            plt.clf()
+            plt.title("Iteration {}".format(i))
+            plt.pause(0.005)
 
-    #     # Initializing the weights
-    #     weights = np.ones(n_components) / n_components
-    #     # Initializing the mean vector
-    #     means = np.random.rand(self.n_components,n_features)
-    #     # Initializing the covariance matrix
-    #     covariances = [np.eye(n_features) for _ in range(n_components)]
-
-    #     # Create the animation
-    #     fig = plt.figure()
-    #     plt.ion()
-
-    #     for i in range(iterations):
-    #         # Run the E-step
-    #         responsibilities = self._e_step(data, means, covariances, weights,n_samples, n_components)
-    #         # Run the M-step
-    #         weights, means, covariances = self._m_step(data, means, covariances, weights, responsibilities, n_samples,n_features, n_components)
-    #         # Compute the log-likelihood
-    #         # log_likelihoods.append(log_likelihood(data, weights, means, covariances))
-    #         # Plot the updated Gaussian distributions
-    #         plt.clf()
-    #         self.plot_gaussian(data, means, covariances, K, responsibilities)
-    #         plt.title("Iteration {}".format(i))
-    #         plt.pause(0.005)
-
-    #     plt.ioff()
+        plt.ioff()
 
     

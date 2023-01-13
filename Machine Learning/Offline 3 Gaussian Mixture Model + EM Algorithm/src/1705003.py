@@ -6,7 +6,6 @@ import matplotlib.pyplot as plt
 from matplotlib import style
 style.use('fivethirtyeight')
 import numpy as np
-from scipy.stats import norm
 
 
     
@@ -21,13 +20,15 @@ def main():
     x_vals = np.arange(lo, hi+1, 1)
     y_vals = []
     
+    params = {}
+    params['k'] = 1
+    params['max_iter'] = 1000
+    params['tol'] = 1e-6
+    params['verbose'] = True
+    g = GMM(**params)
+    
     for k in range(lo,hi+1):
-        params = {}
-        params['k'] = k
-        params['max_iter'] = 100
-        params['tol'] = 1e-6
-        params['verbose'] = False
-        g = GMM(**params)
+        g.k = k
         g.fit(x)
         y_vals.append(g.log_likelihood(x))
         # ll = g.log_likelihood(x)
@@ -45,6 +46,9 @@ def main():
     
     k_star = int(input("enter k_star: "))
     print("k_star = ", k_star)
+    
+    g.k = k_star
+    g.animate(x)
 
 if __name__ == '__main__':
     main()
