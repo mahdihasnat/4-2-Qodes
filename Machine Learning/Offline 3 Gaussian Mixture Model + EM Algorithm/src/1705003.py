@@ -20,7 +20,6 @@ def main():
     hi = 10
     x_vals = np.arange(lo, hi+1, 1)
     y_vals = []
-    print("xvals = ", x_vals)
     
     for k in range(lo,hi+1):
         params = {}
@@ -38,8 +37,10 @@ def main():
         # print(y)
 
     y_vals = np.array(y_vals)
-    
+    print("xvals = ", x_vals)
+    print("y_vals = ", y_vals)
     plt.plot(x_vals, y_vals)
+    plt.xticks(x_vals)
     plt.show()
     
 if __name__ == '__main__':

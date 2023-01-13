@@ -51,6 +51,10 @@ class GMM:
             val = self.multivariate_normal(X, self.mu[j], self.sigma[j])
             # assert val.shape == (self.n,)
             self.r[:,j] = self.pi[j] * val
+        
+        # add small value to avoid division by zero
+        # self.r += 1e-6
+        
         den = np.sum(self.r, axis=1)
         self.r /= den.reshape(-1, 1)
         # assert self.r.shape == (self.n, self.k)
