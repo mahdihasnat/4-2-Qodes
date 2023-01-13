@@ -10,9 +10,11 @@ class GMM:
         assert 'max_iter' in kwargs, "max_iter is not specified"
         assert 'tol' in kwargs, "tol is not specified"
         
+        
         self.k = kwargs['k']
         self.max_iter = kwargs['max_iter']
         self.tol = kwargs['tol']
+        self.verbose = kwargs.get('verbose', False)
         
     def init(self, X):
         self.n, self.d = X.shape
@@ -32,22 +34,30 @@ class GMM:
     def e_step(self, X):
         # assert X.shape == (self.n, self.d)
         
-        self.r = np.zeros((self.n, self.k))
-        for i in range(self.n):
-            for j in range(self.k):
-                val = self.multivariate_normal(X[i], self.mu[j], self.sigma[j])
-                # assert val.shape == ()
-                self.r[i][j] = self.pi[j] * val
-            den = np.sum(self.r[i])
-            # if abs(den)<1e-9:
-            #     den = 1e-6
-            self.r[i] /= den
+        # self.r = np.zeros((self.n, self.k))
+        # for i in range(self.n):
+        #     for j in range(self.k):
+        #         val = self.multivariate_normal(X[i], self.mu[j], self.sigma[j])
+        #         # assert val.shape == ()
+        #         self.r[i][j] = self.pi[j] * val
+        #     den = np.sum(self.r[i])
+        #     # if abs(den)<1e-9:
+        #     #     den = 1e-6
+        #     self.r[i] /= den
         
-        self.r
+        # write r in vectorized form
+        self.r = np.zeros((self.n, self.k))
+        for j in range(self.k):
+            val = self.multivariate_normal(X, self.mu[j], self.sigma[j])
+            # assert val.shape == (self.n,)
+            self.r[:,j] = self.pi[j] * val
+        den = np.sum(self.r, axis=1)
+        self.r /= den.reshape(-1, 1)
+        # assert self.r.shape == (self.n, self.k)
         
         
     def m_step(self, X):
-        # assert X.shape == (self.n, self.d)
+        assert X.shape == (self.n, self.d)
 
         Nk = np.sum(self.r, axis=0)
         # assert Nk.shape == (self.k,)
@@ -65,16 +75,26 @@ class GMM:
             # assert self.sigma[i].shape == (self.d, self.d)
         
         self.pi = Nk / self.n
-        # assert self.pi.shape == (self.k,)
+        assert self.pi.shape == (self.k,)
+        
+        
+        
     
     def log_likelihood(self, X):
+        # ret = 0
+        # for i in range(self.n):
+        #     now = 0
+        #     for j in range(self.k):
+        #         now += self.pi[j] * self.multivariate_normal(X[i], self.mu[j], self.sigma[j])
+        #     ret += np.log(now)
+        # return ret
+        
+        # calculate log likelihood in vectorized form
         ret = 0
-        for i in range(self.n):
-            now = 0
-            for j in range(self.k):
-                now += self.pi[j] * self.multivariate_normal(X[i], self.mu[j], self.sigma[j])
-            ret += np.log(now)
-        return ret
+        for j in range(self.k):
+            ret += self.pi[j] * self.multivariate_normal(X, self.mu[j], self.sigma[j])
+        # print("shape of ret = ", ret.shape)
+        return np.sum(np.log(ret))
     
     
     def fit(self, X):
@@ -82,7 +102,7 @@ class GMM:
         for i in range(self.max_iter):
             self.e_step(X)
             self.m_step(X)
-            if i % 5 == 0:
+            if self.verbose and i % 5 == 0:
                 # print("mean = ", self.mu)
                 # print("sigma = ", self.sigma)
                 print("iter = ", i, "log_likelihood = ", self.log_likelihood(X))

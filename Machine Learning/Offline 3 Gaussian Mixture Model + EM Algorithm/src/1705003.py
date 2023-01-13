@@ -17,7 +17,7 @@ def main():
     print("shape x = ", x.shape)
     
     lo = 1 
-    hi = 5
+    hi = 10
     x_vals = np.arange(lo, hi+1, 1)
     y_vals = []
     print("xvals = ", x_vals)
@@ -25,8 +25,9 @@ def main():
     for k in range(lo,hi+1):
         params = {}
         params['k'] = k
-        params['max_iter'] = 5
+        params['max_iter'] = 100
         params['tol'] = 1e-6
+        params['verbose'] = False
         g = GMM(**params)
         g.fit(x)
         y_vals.append(g.log_likelihood(x))
