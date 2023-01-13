@@ -43,5 +43,9 @@ def main():
     plt.xticks(x_vals)
     plt.show()
     
+    k_star = int(input("enter k_star: "))
+    print("k_star = ", k_star)
+
 if __name__ == '__main__':
     main()
+    

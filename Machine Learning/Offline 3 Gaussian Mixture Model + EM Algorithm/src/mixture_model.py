@@ -22,13 +22,21 @@ class GMM:
         self.pi = np.full(self.k, 1/self.k)
         # assert self.pi.shape == (self.k,)
         
-        self.mu = np.random.rand(self.k, self.d)
+        # self.mu = np.random.rand(self.k, self.d)
         
-        # assert self.mu.shape == (self.k, self.d)
-        # initi sigma as identity matrix
-        self.sigma = np.array([np.identity(self.d)] * self.k)
+        # # assert self.mu.shape == (self.k, self.d)
+        # # initi sigma as identity matrix
+        # self.sigma = np.array([np.identity(self.d)] * self.k)
         
         # assert self.sigma.shape == (self.k, self.d, self.d)
+        
+        
+        new_X = np.array_split(X, self.k)
+        self.mu = np.array([np.mean(x, axis=0) for x in new_X])
+        self.sigma = np.array([np.cov(x.T) for x in new_X])
+        assert self.mu.shape == (self.k, self.d)
+        assert self.sigma.shape == (self.k, self.d, self.d)
+        del new_X
         
     
     def e_step(self, X):
