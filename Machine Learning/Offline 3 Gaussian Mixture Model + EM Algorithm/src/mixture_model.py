@@ -20,107 +20,49 @@ class GMM:
         self.n, self.d = X.shape
         
         self.pi = np.full(self.k, 1/self.k)
-        # assert self.pi.shape == (self.k,)
         
-        # self.mu = np.random.rand(self.k, self.d)
-        
-        # # assert self.mu.shape == (self.k, self.d)
-        # # initi sigma as identity matrix
-        # self.sigma = np.array([np.identity(self.d)] * self.k)
-        
-        # assert self.sigma.shape == (self.k, self.d, self.d)
-        
-        
-        new_X = np.array_split(X, self.k)
-        self.mu = np.array([np.mean(x, axis=0) for x in new_X])
-        self.sigma = np.array([np.cov(x.T) for x in new_X])
-        assert self.mu.shape == (self.k, self.d)
-        assert self.sigma.shape == (self.k, self.d, self.d)
-        del new_X
+        random_row = np.random.randint(low=0, high=self.n, size=self.k)
+        self.mu = [  X[row_index,:] for row_index in random_row ]
+        self.sigma = [ np.cov(X.T) for _ in range(self.k) ]
         
     
     def e_step(self, X):
-        # assert X.shape == (self.n, self.d)
-        
-        # self.r = np.zeros((self.n, self.k))
-        # for i in range(self.n):
-        #     for j in range(self.k):
-        #         val = self.multivariate_normal(X[i], self.mu[j], self.sigma[j])
-        #         # assert val.shape == ()
-        #         self.r[i][j] = self.pi[j] * val
-        #     den = np.sum(self.r[i])
-        #     # if abs(den)<1e-9:
-        #     #     den = 1e-6
-        #     self.r[i] /= den
-        
         # write r in vectorized form
         self.r = np.zeros((self.n, self.k))
-        for j in range(self.k):
-            val = self.multivariate_normal(X, self.mu[j], self.sigma[j])
-            # assert val.shape == (self.n,)
-            self.r[:,j] = self.pi[j] * val
-        
-        # add small value to avoid division by zero
-        # self.r += 1e-6
-        
-        den = np.sum(self.r, axis=1)
-        self.r /= den.reshape(-1, 1)
-        # assert self.r.shape == (self.n, self.k)
-        
-        
-    def m_step(self, X):
-        # assert X.shape == (self.n, self.d)
-
-        # Nk = np.sum(self.r, axis=0)
-        # # assert Nk.shape == (self.k,)
-        
-        # self.mu = np.zeros((self.k, self.d))
-        # for i in range(self.k):
-        #     self.mu[i] = np.sum(self.r[:, i].reshape(-1, 1) * X, axis=0) / Nk[i]
-        # # assert self.mu.shape == (self.k, self.d)
-        
-        # self.sigma = np.zeros((self.k, self.d, self.d))
-        # for i in range(self.k):
-        #     diff = X - self.mu[i]
-        #     # assert diff.shape == (self.n, self.d)
-        #     self.sigma[i] = np.dot( (self.r[:,i].reshape(-1,1)*diff).T , diff) / Nk[i]
-        #     # assert self.sigma[i].shape == (self.d, self.d)
-        
-        # self.pi = Nk / self.n
-        # assert self.pi.shape == (self.k,)
-        
-        
-        # write m_step in vectorized form
-        Nk = np.sum(self.r, axis=0)
-        assert Nk.shape == (self.k,)
-        
-        self.mu = np.dot(self.r.T, X) / Nk.reshape(-1, 1)
-        assert self.mu.shape == (self.k, self.d)
-        
-        self.sigma = np.zeros((self.k, self.d, self.d))
         for i in range(self.k):
-            self.sigma[i] = np.dot( (self.r[:,i].reshape(-1,1)*(X - self.mu[i])).T , (X - self.mu[i])) / Nk[i]
+            distribution = multivariate_normal(
+                mean=self.mu[i], 
+                cov=self.sigma[i])
+            self.r[:,i] = distribution.pdf(X)
+            
         
-        self.pi = Nk / self.n
+        numerator = self.r * self.pi
+        den = np.sum(numerator, axis=1)[:, np.newaxis]
+        self.r = numerator / den
+        assert self.r.shape == (self.n, self.k)
+            
+    def m_step(self, X):
+        
+        for i in range(self.k):
+            rk = self.r[:,[i]]
+            assert rk.shape == (self.n, 1)
+            total_rk = np.sum(rk)
+            self.mu[i] = (X*rk).sum(axis = 0) / total_rk
+            assert self.mu[i].shape == (self.d,)
+            self.sigma[i] = np.cov(X.T, aweights=(rk/total_rk).flatten(), bias=True)
+            assert self.sigma[i].shape == (self.d, self.d)
+        
+        self.pi = self.r.mean(axis=0)
         assert self.pi.shape == (self.k,)
-        
     
     def log_likelihood(self, X):
-        # ret = 0
-        # for i in range(self.n):
-        #     now = 0
-        #     for j in range(self.k):
-        #         now += self.pi[j] * self.multivariate_normal(X[i], self.mu[j], self.sigma[j])
-        #     ret += np.log(now)
-        # return ret
-        
-        # calculate log likelihood in vectorized form
-        ret = 0
-        for j in range(self.k):
-            ret += self.pi[j] * self.multivariate_normal(X, self.mu[j], self.sigma[j])
-        # print("shape of ret = ", ret.shape)
-        return np.sum(np.log(ret))
-    
+        likelihood = np.zeros((self.n, self.k))
+        for i in range(self.k):
+            likelihood[:,i] = self.multivariate_normal(X, self.mu[i], self.sigma[i])
+        assert likelihood.shape == (self.n, self.k)
+        likelihood = likelihood * self.pi
+        assert likelihood.shape == (self.n, self.k)
+        return np.sum(np.log(likelihood.sum(axis=1)))
     
     def fit(self, X):
         self.init(X)
@@ -133,27 +75,13 @@ class GMM:
                 break
             last_log_likelihood = ll
             if self.verbose and i % 5 == 0:
-                print("mean = ", self.mu)
-                print("sigma = ", self.sigma)
+                # print("mean = ", self.mu)
+                # print("sigma = ", self.sigma)
                 print("iter = ", i, "log_likelihood = ", self.log_likelihood(X))
     
     def multivariate_normal(self, x, mu, sigma):
-        # det = np.linalg.det(sigma) 
-        # assert det.shape == ()
-        # if det == 0:
-        #     sigma += 0.01 * np.identity(self.d)
-        #     det = np.linalg.det(sigma)
-        
-        # nom = np.exp(-0.5 * np.dot(np.dot((x - mu).T, np.linalg.inv(sigma)), (x - mu)))
-        # assert nom.shape == ()
-        # denominator = np.sqrt(det *((2 * np.pi) ** self.d))
-        # assert denominator.shape == ()
-        # ret = nom / denominator
-        # print("ret = ", ret)
-        ret2 = multivariate_normal.pdf(x, mean=mu, cov=sigma,allow_singular=True)
-        # print("ret2 = ",ret2)
-        # assert np.abs(ret - ret2) < 1e-5
-        return ret2
+        mvn = multivariate_normal(mean=mu, cov=sigma)
+        return mvn.pdf(x)
 
 
     def predict(self,X):

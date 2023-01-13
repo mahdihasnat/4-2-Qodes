@@ -1,7 +1,6 @@
 import numpy as np
 from data_handler import load_dataset
 from mixture_model import GMM
-
 import matplotlib.pyplot as plt
 from matplotlib import style
 style.use('fivethirtyeight')
@@ -23,7 +22,7 @@ def main():
     params = {}
     params['k'] = 1
     params['max_iter'] = 1000
-    params['tol'] = 1e-6
+    params['tol'] = 1e-2
     params['verbose'] = True
     g = GMM(**params)
     
