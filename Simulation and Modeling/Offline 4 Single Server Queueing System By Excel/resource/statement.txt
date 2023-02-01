@@ -11,4 +11,4 @@ A spreadsheet simulation for single-server queueing system is to be done for out
 	replications in a single graph  considering m = 500 customers.
 
 (4) Finally, show the plot of E(Di) for n = 1000 replications and m = 500 customers 
-	for different starting conditions s in a single graph. 
+	for different starting conditions s in a single graph.
