@@ -70,7 +70,7 @@ class ConvLayer:
         padded_x = np.pad(x , ((0,0),(0,0),(self.padding[0],self.padding[0]),(self.padding[1],self.padding[1])),\
                             mode='constant', constant_values=0)
         # print("padded_x: ",padded_x)
-        
+        # TODO: implement faster using einsum, or evern better using fft2d
         out_x = np.zeros((x.shape[0],self.out_channels,out_shape[0],out_shape[1]))
         for i in range(x.shape[0]):
             for j in range(self.out_channels):
