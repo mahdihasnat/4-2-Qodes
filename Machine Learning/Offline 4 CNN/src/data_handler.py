@@ -19,10 +19,8 @@ def load_dataset():
     y_max = 0
     image_shape = (128,128)
     channel = 1
-    x = np.zeros((0, channel, image_shape[0], image_shape[1]))
-    y = np.zeros((0,1))
-    print("x shape: {0}".format(x.shape))
-    print("y shape: {0}".format(y.shape))
+    x_list = []
+    y_list = []
     for index, row in csv.iterrows():
         # print(row['filename'])
         # print(row['digit'])
@@ -54,18 +52,19 @@ def load_dataset():
    
             # print("shape of x",x.shape)
             # print("shape of y",y.shape)
-            img = np.expand_dims(img, axis=0)
-            x = np.concatenate((x, img), axis= 0)
-            y = np.concatenate((y, np.array([[row['digit']]])), axis= 0)
+            x_list.append(img)
+            y_list.append(np.array([[row['digit']]]))
+            
             # print(img)
             # print("shape of x",x.shape)
             # print("shape of y",y.shape)
             # break
         else:
             print("File does not exist:",image_fila_name)
-            
         pass
-
+    # convert x_list to numpy array
+    x=np.array(x_list)
+    y=np.array(y_list)
     # print("x_max: {0}, y_max: {1}".format(x_max, y_max))
     print("image_shape: {0}".format(image_shape))
     print("x shape: {0}".format(x.shape))

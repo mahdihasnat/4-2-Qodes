@@ -1,1 +1,2 @@
 - pip install opencv-python-headless
+- pip install pandas
