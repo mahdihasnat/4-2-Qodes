@@ -69,7 +69,7 @@ class ConvLayer:
         # https://numpy.org/doc/stable/reference/generated/numpy.pad.html
         padded_x = np.pad(x , ((0,0),(0,0),(self.padding[0],self.padding[0]),(self.padding[1],self.padding[1])),\
                             mode='constant', constant_values=0)
-        print("padded_x: ",padded_x)
+        # print("padded_x: ",padded_x)
         
         out_x = np.zeros((x.shape[0],self.out_channels,out_shape[0],out_shape[1]))
         for i in range(x.shape[0]):
@@ -88,7 +88,7 @@ if __name__ == '__main__':
     # Test for My convolutional layer using Pytorch convolutional layer
     
     m = nn.Conv2d(1, 2, 2, stride=1,dtype=torch.float64)
-    my = ConvLayer(1, 2, 1, stride=1,padding=1)
+    my = ConvLayer(1, 2, 1, stride=1,padding=(1,1))
     x = np.array([.1,.2,.3,.4,.5,.6,.7,.8,.9]).reshape(1,1,3,3)
     print("x: ",x)
     print("x.shape: ",x.shape)
