@@ -31,11 +31,12 @@ def conv_forward_brute(x,weight,biases,out_channels, kernel_shape, stride, paddi
 class ConvLayerTest(unittest.TestCase):
     
     def test_random_conv(self):
+        
         x_shape = (10,3,32,32)
         k_shape = (10,15)
         out_channels = 1
         stride = (2,3)
-        padding = (0,0)
+        padding = (5,7)
         x = np.random.randint(-100,100,x_shape)
         w = np.random.randint(-100,100,(out_channels,x_shape[1],k_shape[0],k_shape[1]))
         # w = np.zeros((out_channels,x_shape[1],k_shape[0],k_shape[1]))
