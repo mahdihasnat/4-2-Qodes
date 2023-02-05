@@ -88,14 +88,15 @@ if __name__ == '__main__':
     # Test for My convolutional layer using Pytorch convolutional layer
     
     m = nn.Conv2d(1, 2, 2, stride=1,dtype=torch.float64)
-    my = ConvLayer(1, 2, 2, stride=1,padding=1)
+    my = ConvLayer(1, 2, 1, stride=1,padding=1)
     x = np.array([.1,.2,.3,.4,.5,.6,.7,.8,.9]).reshape(1,1,3,3)
     print("x: ",x)
     print("x.shape: ",x.shape)
     # xx = torch.from_numpy(x)
     # y = m(xx)
     # print("y: ",y)
-    
+    # my.weights = np.ones(my.weights.shape)
+    # my.biases = np.zeros(my.biases.shape)
     z = my.forward(x)
     print("z: ",z)
     
