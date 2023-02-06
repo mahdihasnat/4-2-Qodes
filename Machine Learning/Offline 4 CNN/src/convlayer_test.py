@@ -1,7 +1,7 @@
 import unittest
 import numpy as np
 
-from convlayer import ConvLayer
+from convlayer import Conv2d
 
 def conv_forward_brute(x,weight,biases,out_channels, kernel_shape, stride, padding):
 	assert len(x.shape) == 4, "input shape is not 4D"
@@ -28,7 +28,7 @@ def conv_forward_brute(x,weight,biases,out_channels, kernel_shape, stride, paddi
 	return out_x
 	
 
-class ConvLayerTest(unittest.TestCase):
+class Conv2dTest(unittest.TestCase):
     
     def test_random_conv(self):
         
@@ -42,10 +42,10 @@ class ConvLayerTest(unittest.TestCase):
         # w = np.zeros((out_channels,x_shape[1],k_shape[0],k_shape[1]))
         b = np.random.randint(-100,100,out_channels)
         # b = np.zeros(out_channels)
-        convlayer = ConvLayer(x_shape[1],out_channels,k_shape,stride,padding)
-        convlayer.weights = w
-        convlayer.biases = b
-        a = convlayer.forward(x)
+        cl = Conv2d(out_channels,k_shape,stride,padding)
+        cl.weights = w
+        cl.biases = b
+        a = cl.forward(x)
         b = conv_forward_brute(x,w,b,out_channels,k_shape,stride,padding)
         # print("a: ",a)
         # print("b: ",b)

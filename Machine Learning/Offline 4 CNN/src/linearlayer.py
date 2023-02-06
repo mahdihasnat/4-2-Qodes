@@ -28,6 +28,15 @@ class LinearLayer():
         out_x = np.matmul(x,self.weights) + self.biases
         
         return out_x
+
+    def backward(self, del_z, lr):
+        """
+            in del_z: (batch_size, out_features)
+            lr : learning rate
+        """
+        assert len(del_z.shape) == 2, "input shape is not 2D"
+        assert del_z.shape[1] == self.out_features, "del_z shape dont match"
+        
     
 
 if __name__ == '__main__':

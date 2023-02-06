@@ -2,11 +2,10 @@ import numpy as np
 from numpy.lib.stride_tricks import as_strided
 
 # cnn convolutional layer
-class ConvLayer:
+class Conv2d:
     
-    def __init__(self,in_channels, out_channels, kernel_size, stride=1, padding=0) -> None:
+    def __init__(self, out_channels, kernel_size, stride=1, padding=0) -> None:
         """
-        in_channels: number of input channels
         out_channels: number of output channels
         kernel_size: size of the convolutional kernel, int or pair
         stride: stride of the convolution
@@ -25,31 +24,17 @@ class ConvLayer:
             padding = (padding, padding)
         assert len(padding) == 2
         
-        
-        
-        self.in_channels = in_channels
         self.out_channels = out_channels
         self.kernel_shape = kernel_size
         self.stride = stride
         self.padding = padding
         
-        print("kernel_shape: ",self.kernel_shape)
-        print("stride: ",self.stride)
-        print("padding: ",self.padding)
+        # print("kernel_shape: ",self.kernel_shape)
+        # print("stride: ",self.stride)
+        # print("padding: ",self.padding)
         
-        # He initialization for RElu
-        # https://paperswithcode.com/method/he-initialization
-        # weight shape = (out_channels, in_channels, kernel_shape[0], kernel_shape[1])
-        self.weights = np.random.randn(out_channels, in_channels, self.kernel_shape[0], self.kernel_shape[1])  \
-                        * np.sqrt(2/(in_channels*self.kernel_shape[0]*self.kernel_shape[1]))
-
-        
-        # bias shape = (out_channels)
-        self.biases = np.random.randn(out_channels)\
-                *np.sqrt(2/(in_channels*self.kernel_shape[0]*self.kernel_shape[1]))
-        
-        assert self.weights.shape == (out_channels, in_channels, self.kernel_shape[0], self.kernel_shape[1]) , "wight shape dont match"
-        assert self.biases.shape == (out_channels,) , "bias shape dont match"
+        self.weights = None
+        self.biases = None
     
     
     def forward(self,x):
@@ -57,12 +42,26 @@ class ConvLayer:
             x: shape = (batch_size, in_channels, height, width)
         """
         assert len(x.shape) == 4, "input shape is not 4D"
-        assert x.shape[1] == self.in_channels, "input channel dont match"
+        in_channels = x.shape[1]
         
-        print("x_shape: ",x.shape)
+        
+        if self.weights is None:
+            # He initialization for RElu
+            # https://paperswithcode.com/method/he-initialization
+            # weight shape = (out_channels, in_channels, kernel_shape[0], kernel_shape[1])
+            self.weights = np.random.randn(self.out_channels, in_channels, self.kernel_shape[0], self.kernel_shape[1])  \
+                            * np.sqrt(2/(in_channels*self.kernel_shape[0]*self.kernel_shape[1]))
+
+        if self.biases is None:
+            # bias shape = (out_channels)
+            self.biases = np.random.randn(self.out_channels)\
+                    *np.sqrt(2/(in_channels*self.kernel_shape[0]*self.kernel_shape[1]))
+        
+        assert self.weights.shape == (self.out_channels, in_channels, self.kernel_shape[0], self.kernel_shape[1]) , "wight shape dont match"
+        assert self.biases.shape == (self.out_channels,) , "bias shape dont match"
+        
         out_shape =( (x.shape[2] + 2*self.padding[0] - self.kernel_shape[0])//self.stride[0] + 1,\
                      (x.shape[3] + 2*self.padding[1] - self.kernel_shape[1])//self.stride[1] + 1)
-        print("out_shape: ",out_shape)
         
         assert out_shape[0] > 0 and out_shape[1] > 0, "output shape is negative"
         
@@ -88,7 +87,7 @@ if __name__ == '__main__':
     # Test for My convolutional layer using Pytorch convolutional layer
     
     m = nn.Conv2d(1, 2, 2, stride=1,dtype=torch.float64)
-    my = ConvLayer(1, 2, 1, stride=1,padding=(1,1))
+    my = Conv2d(1, 2, 1, stride=1,padding=(1,1))
     x = np.array([.1,.2,.3,.4,.5,.6,.7,.8,.9]).reshape(1,1,3,3)
     print("x: ",x)
     print("x.shape: ",x.shape)
