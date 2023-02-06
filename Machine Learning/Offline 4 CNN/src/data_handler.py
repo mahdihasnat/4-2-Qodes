@@ -62,6 +62,9 @@ def load_dataset():
         else:
             print("File does not exist:",image_fila_name)
         pass
+    sz = min(16,len(x_list))
+    x_list = x_list[:sz]
+    y_list = y_list[:sz]
     # convert x_list to numpy array
     x=np.array(x_list)
     y=np.array(y_list)

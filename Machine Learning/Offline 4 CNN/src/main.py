@@ -38,5 +38,7 @@ if __name__ == '__main__':
     m.add_layer(SoftMax())
     
     x,y = load_dataset()
+    lr = 0.01
+    m.train(x,y,lr)
     
     

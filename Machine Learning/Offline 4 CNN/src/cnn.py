@@ -10,6 +10,11 @@ class CNN():
         self.layers.append(layer)
     
 
-    def train(self,x,y_true):
-        pass
+    def train(self,x,y_true,lr):
+        for layer in self.layers:
+            x = layer.forward(x)
+            print("train output shape: ",x.shape)
+        
+    
+    
 

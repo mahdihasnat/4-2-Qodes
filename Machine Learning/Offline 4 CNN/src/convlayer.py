@@ -40,6 +40,7 @@ class Conv2d:
     def forward(self,x):
         """
             x: shape = (batch_size, in_channels, height, width)
+            out_x : shape = (batch_size, out_channels, out_height, out_width)
         """
         assert len(x.shape) == 4, "input shape is not 4D"
         in_channels = x.shape[1]
@@ -69,15 +70,25 @@ class Conv2d:
         padded_x = np.pad(x , ((0,0),(0,0),(self.padding[0],self.padding[0]),(self.padding[1],self.padding[1])),\
                             mode='constant', constant_values=0)
         # print("padded_x: ",padded_x)
-        # TODO: implement faster using einsum, or evern better using fft2d
-        out_x = np.zeros((x.shape[0],self.out_channels,out_shape[0],out_shape[1]))
-        for i in range(x.shape[0]):
-            for j in range(self.out_channels):
-                for k in range(out_shape[0]):
-                    for l in range(out_shape[1]):
-                        out_x[i,j,k,l] = np.sum(padded_x[i,:,k*self.stride[0]:k*self.stride[0]+self.kernel_shape[0],\
-                                                        l*self.stride[1]:l*self.stride[1]+self.kernel_shape[1]]\
-                                                *self.weights[j,:,:,:]) + self.biases[j]
+        
+        # x: shape = (batch_size, in_channels, height_paded, width_paded)
+        # weights shape = (out_channels, in_channels, kernel_shape[0], kernel_shape[1])
+        
+        # strided_x shape = (batch_size, in_channels, out_height, out_width, kernel_shape[0], kernel_shape[1])
+        strided_x = as_strided(x,
+            shape = (x.shape[0], x.shape[1], out_shape[0], out_shape[1] , self.kernel_shape[0], self.kernel_shape[1]),
+            strides = (x.strides[0], x.strides[1], x.strides[2] * self.stride[0] , x.strides[3] * self.stride[1], x.strides[2], x.strides[3])
+                               )
+        # print("strided_x: ",strided_x)
+        # print("self.weights: ",self.weights)
+        # print("self.biases: ",self.biases)
+        # out_x : shape = (batch_size, out_channels, out_height, out_width)
+        # biases shape = (out_channels)
+        out_x = np.einsum("ijklmn,ojmn -> iokl",strided_x, self.weights)
+        out_x = np.swapaxes(out_x,0,1)
+        out_x = np.add(out_x,self.biases[:,np.newaxis,np.newaxis,np.newaxis])
+        out_x = np.swapaxes(out_x,0,1)
+        assert out_x.shape == (x.shape[0],self.out_channels,out_shape[0],out_shape[1])
         return out_x
 
 
@@ -87,7 +98,7 @@ if __name__ == '__main__':
     # Test for My convolutional layer using Pytorch convolutional layer
     
     m = nn.Conv2d(1, 2, 2, stride=1,dtype=torch.float64)
-    my = Conv2d(1, 2, 1, stride=1,padding=(1,1))
+    my = Conv2d( 2, 1, stride=1,padding=(1,1))
     x = np.array([.1,.2,.3,.4,.5,.6,.7,.8,.9]).reshape(1,1,3,3)
     print("x: ",x)
     print("x.shape: ",x.shape)
