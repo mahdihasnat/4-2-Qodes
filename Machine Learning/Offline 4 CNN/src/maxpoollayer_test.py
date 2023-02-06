@@ -24,9 +24,9 @@ def max_pool_brute(x,kernel_shape, stride):
 class MaxPoolLayerTest(unittest.TestCase):
     
     def test_random_maxpool(self):
-        x_shape = (100,3,32,32)
-        k_shape = (2,2)
-        stride = (2,2)
+        x_shape = (100,15,32,32)
+        k_shape = (3,7)
+        stride = (6,5)
         x = np.random.randint(-100,100,x_shape)
         maxpoollayer = MaxPool2d(k_shape,stride)
         a = maxpoollayer.forward(x)
