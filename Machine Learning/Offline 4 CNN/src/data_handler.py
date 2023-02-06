@@ -70,5 +70,7 @@ def load_dataset():
     print("x shape: {0}".format(x.shape))
     print("y shape: {0}".format(y.shape))
     
+    return x,y
+    
 
 load_dataset()
