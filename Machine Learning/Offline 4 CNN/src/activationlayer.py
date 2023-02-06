@@ -3,23 +3,28 @@ import numpy as np
 
 class ReLU():
     
-    def __init__(self,inplace = False) -> None:
+    def __init__(self) -> None:
         """
             https://pytorch.org/docs/stable/generated/torch.nn.ReLU.html
         """
-        self.inplace = inplace
+        
 
     def forward(self, x):
         """
             x: shape = (batch_size, channels, height, width)
         """
         assert len(x.shape) == 4, "input shape is not 4D"
-        if self.inplace:
-            np.maximum(x,0,x)
-            return x
-        else:
-            return np.maximum(x,0)
+        self.x = x
+        return np.maximum(x,0)
         
+    def backward(self, del_z, lr):
+        """
+            del_z: shape = (batch_size, channels, height, width)
+        """
+        assert len(del_z.shape) == 4, "input shape is not 4D"
+        assert del_z.shape == self.x.shape, "del_z shape is not same as x shape"
+        
+        return del_z * (self.x >= 0)
 
 
 if __name__ == '__main__':

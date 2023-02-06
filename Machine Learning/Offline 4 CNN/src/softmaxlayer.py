@@ -11,12 +11,13 @@ class SoftMax():
         exp = np.exp(x)
         return exp / np.sum( exp , axis = 1, keepdims = True)
     
-    def backward(self,y_pred, y_true):
+    def backward(self,y_pred_minus_y_true, lr):
         """
             in y_pred: (samples, classes)
             out y_pred: (samples, classes)
         """
-        return y_pred - y_true
+        assert len(y_pred_minus_y_true.shape) == 2, "The input of SoftMax must be 2-D"
+        return y_pred_minus_y_true
 
 if __name__ == '__main__':
     x_shape = (100,10)

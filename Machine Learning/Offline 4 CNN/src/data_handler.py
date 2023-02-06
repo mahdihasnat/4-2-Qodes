@@ -53,7 +53,7 @@ def load_dataset():
             # print("shape of x",x.shape)
             # print("shape of y",y.shape)
             x_list.append(img)
-            y_list.append(np.array([[row['digit']]]))
+            y_list.append(np.array([row['digit']]))
             
             # print(img)
             # print("shape of x",x.shape)
@@ -62,7 +62,7 @@ def load_dataset():
         else:
             print("File does not exist:",image_fila_name)
         pass
-    sz = min(500,len(x_list))
+    sz = min(50,len(x_list))
     x_list = x_list[:sz]
     y_list = y_list[:sz]
     # convert x_list to numpy array

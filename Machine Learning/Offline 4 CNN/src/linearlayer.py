@@ -15,6 +15,9 @@ class LinearLayer():
         """
         assert len(x.shape) == 2, "input shape is not 2D"
         in_features = x.shape[1]
+        batch_size = x.shape[0]
+        
+        self.x = x
         
         if self.weights is None:    
             # https://cs231n.github.io/neural-networks-2/#init
@@ -25,8 +28,9 @@ class LinearLayer():
         
         assert self.weights.shape == (in_features,self.out_features), "weight shape dont match"
         
-        out_x = np.matmul(x,self.weights) + self.biases
-        
+        out_x = np.matmul(x,self.weights) + self.biases[np.newaxis,:]
+
+        assert out_x.shape == (batch_size,self.out_features), "output shape dont match"
         return out_x
 
     def backward(self, del_z, lr):
@@ -36,6 +40,19 @@ class LinearLayer():
         """
         assert len(del_z.shape) == 2, "input shape is not 2D"
         assert del_z.shape[1] == self.out_features, "del_z shape dont match"
+        # https://www.adityaagrawal.net/blog/deep_learning/bprop_fc
+        batch_size = del_z.shape[0]
+        
+        del_w = np.matmul(self.x.T, del_z)
+        assert del_w.shape == self.weights.shape, "del_w shape dont match"
+        del_b = np.sum(del_z, axis = 0)
+        assert del_b.shape == self.biases.shape, "del_b shape dont match"
+        del_x = np.matmul(del_z, self.weights.T)
+        assert del_x.shape == self.x.shape, "del_x shape dont match"
+        self.weights -= lr*del_w
+        self.biases -= lr*del_b
+        
+        return del_x
         
     
 
