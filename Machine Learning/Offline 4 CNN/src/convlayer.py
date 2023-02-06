@@ -41,6 +41,8 @@ class Conv2d:
         """
             x: shape = (batch_size, in_channels, height, width)
             out_x : shape = (batch_size, out_channels, out_height, out_width)
+            weights shape = (out_channels, in_channels, kernel_shape[0], kernel_shape[1])
+            
         """
         assert len(x.shape) == 4, "input shape is not 4D"
         in_channels = x.shape[1]

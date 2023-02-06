@@ -46,7 +46,7 @@ def load_dataset():
             # print(img)
             img=img.astype(np.float32)
             # print(img.dtype)
-            img/=255.0
+            img = img/np.maximum(img.max(),1)
             # print(img.dtype)
             # print("Shape of img",img.shape)
    
@@ -62,7 +62,7 @@ def load_dataset():
         else:
             print("File does not exist:",image_fila_name)
         pass
-    sz = min(50,len(x_list))
+    sz = min(500,len(x_list))
     x_list = x_list[:sz]
     y_list = y_list[:sz]
     # convert x_list to numpy array
