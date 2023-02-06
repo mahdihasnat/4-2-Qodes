@@ -31,11 +31,10 @@ def conv_forward_brute(x,weight,biases,out_channels, kernel_shape, stride, paddi
 class Conv2dTest(unittest.TestCase):
     
     def test_random_conv(self):
-        
-        x_shape = (100,3,32,32)
-        k_shape = (16,13)
-        out_channels = 1
-        stride = (2,3)
+        x_shape = (5,3,15,17)
+        k_shape = (12,17)
+        out_channels = 5
+        stride = (8,9)
         padding = (5,7)
         x = np.random.randint(-100,100,x_shape)
         w = np.random.randint(-100,100,(out_channels,x_shape[1],k_shape[0],k_shape[1]))

@@ -44,7 +44,7 @@ class Conv2d:
         """
         assert len(x.shape) == 4, "input shape is not 4D"
         in_channels = x.shape[1]
-        
+        batch_size = x.shape[0]
         
         if self.weights is None:
             # He initialization for RElu
@@ -75,9 +75,10 @@ class Conv2d:
         # weights shape = (out_channels, in_channels, kernel_shape[0], kernel_shape[1])
         
         # strided_x shape = (batch_size, in_channels, out_height, out_width, kernel_shape[0], kernel_shape[1])
-        strided_x = as_strided(x,
-            shape = (x.shape[0], x.shape[1], out_shape[0], out_shape[1] , self.kernel_shape[0], self.kernel_shape[1]),
-            strides = (x.strides[0], x.strides[1], x.strides[2] * self.stride[0] , x.strides[3] * self.stride[1], x.strides[2], x.strides[3])
+        strided_x = as_strided(padded_x,
+            shape = (padded_x.shape[0], padded_x.shape[1], out_shape[0], out_shape[1] , self.kernel_shape[0], self.kernel_shape[1]),
+            strides = (padded_x.strides[0], padded_x.strides[1], padded_x.strides[2] * self.stride[0] , 
+                       padded_x.strides[3] * self.stride[1], padded_x.strides[2], padded_x.strides[3])
                                )
         # print("strided_x: ",strided_x)
         # print("self.weights: ",self.weights)
@@ -85,10 +86,14 @@ class Conv2d:
         # out_x : shape = (batch_size, out_channels, out_height, out_width)
         # biases shape = (out_channels)
         out_x = np.einsum("ijklmn,ojmn -> iokl",strided_x, self.weights)
-        out_x = np.swapaxes(out_x,0,1)
-        out_x = np.add(out_x,self.biases[:,np.newaxis,np.newaxis,np.newaxis])
-        out_x = np.swapaxes(out_x,0,1)
-        assert out_x.shape == (x.shape[0],self.out_channels,out_shape[0],out_shape[1])
+        # print("out_x: ",out_x)
+        
+        self.biases = self.biases.reshape((1,self.out_channels,1,1))
+        out_x = np.add(out_x,self.biases)
+        self.biases = self.biases.reshape((self.out_channels,))
+        # print("out_x: ",out_x)
+        
+        assert out_x.shape == (batch_size,self.out_channels,out_shape[0],out_shape[1])
         return out_x
 
 
