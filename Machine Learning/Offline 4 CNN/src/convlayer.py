@@ -60,8 +60,8 @@ class ConvLayer:
         assert x.shape[1] == self.in_channels, "input channel dont match"
         
         print("x_shape: ",x.shape)
-        out_shape =( (x.shape[2] + 2*self.padding[0] - self.kernel_shape[0] +1)//self.stride[0],\
-                    (x.shape[3] + 2*self.padding[1] - self.kernel_shape[1] +1)//self.stride[1] )
+        out_shape =( (x.shape[2] + 2*self.padding[0] - self.kernel_shape[0])//self.stride[0] + 1,\
+                     (x.shape[3] + 2*self.padding[1] - self.kernel_shape[1])//self.stride[1] + 1)
         print("out_shape: ",out_shape)
         
         assert out_shape[0] > 0 and out_shape[1] > 0, "output shape is negative"
