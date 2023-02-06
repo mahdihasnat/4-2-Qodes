@@ -31,23 +31,26 @@ def conv_forward_brute(x,weight,biases,out_channels, kernel_shape, stride, paddi
 class Conv2dTest(unittest.TestCase):
     
     def test_random_conv(self):
-        x_shape = (5,3,15,17)
-        k_shape = (12,17)
+        x_shape = (2,5,128,128)
+        k_shape = (12,13)
         out_channels = 5
-        stride = (8,9)
-        padding = (5,7)
+        stride = (5,7)
+        padding = (6,9)
         x = np.random.randint(-100,100,x_shape)
         w = np.random.randint(-100,100,(out_channels,x_shape[1],k_shape[0],k_shape[1]))
         # w = np.zeros((out_channels,x_shape[1],k_shape[0],k_shape[1]))
         b = np.random.randint(-100,100,out_channels)
         # b = np.zeros(out_channels)
+        # print("x test:",x)
+        # print("w test:",w)
+        # print("b test:",b)
         cl = Conv2d(out_channels,k_shape,stride,padding)
         cl.weights = w
         cl.biases = b
         a = cl.forward(x)
         b = conv_forward_brute(x,w,b,out_channels,k_shape,stride,padding)
-        # print("a: ",a)
-        # print("b: ",b)
+        print("a: ",a)
+        print("b: ",b)
         print("a.shape: ",a.shape)
         print("b.shape: ",b.shape)
         self.assertTrue(np.allclose(a,b), "forward pass is not correct")
