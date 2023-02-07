@@ -39,7 +39,7 @@ def fast_convulate(x,y):
 def fast_hadamard(x,y):
     """
     x: shape = (batch_size, in_channels, height, width)
-    y: shape = (out_channels,in_channels, kernel_height, kernel_height)
+    y: shape = (out_channels,in_channels, kernel_height, kernel_width)
     out : shape = (batch_size, out_channels, height, width)
     """
     assert len(x.shape) == 4, "x not in 4D"

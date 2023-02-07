@@ -49,6 +49,7 @@ class Conv2d:
         batch_size = x.shape[0]
         self.x_shape = x.shape
         
+        
         if self.weights is None:
             # He initialization for RElu
             # https://paperswithcode.com/method/he-initialization
@@ -72,6 +73,7 @@ class Conv2d:
         # https://numpy.org/doc/stable/reference/generated/numpy.pad.html
         padded_x = np.pad(x , ((0,0),(0,0),(self.padding[0],self.padding[0]),(self.padding[1],self.padding[1])),\
                             mode='constant', constant_values=0)
+        self.padded_x = padded_x
         out_x = fast_hadamard(padded_x,self.weights)
         out_x = out_x[:,:,::self.stride[0],::self.stride[1]]
         
@@ -98,8 +100,10 @@ class Conv2d:
         modified_del_z = np.zeros( (batch_size, self.out_channels,
                                 (del_z.shape[2]-1)*(self.stride[0]) + self.kernel_shape[0]*2-1,
                                 (del_z.shape[3]-1)*(self.stride[1]) + self.kernel_shape[1]*2-1))
-        modified_del_z[:,:,self.kernel_shape[0]-1:modified_del_z.shape[-2]-self.kernel_shape[0]+1,
-                       self.kernel_shape[1]-1:modified_del_z.shape[-1]-self.kernel_shape[1]+1] = del_z
+        modified_del_z[:,:,
+                       self.kernel_shape[0]-1:modified_del_z.shape[-2]-self.kernel_shape[0]+1:self.stride[0],
+                       self.kernel_shape[1]-1:modified_del_z.shape[-1]-self.kernel_shape[1]+1:self.stride[1]
+                       ] = del_z
         swapped_weights = np.swapaxes(self.weights,0,1)
         padded_del_x = fast_convulate(modified_del_z,swapped_weights)
         padded_shape = (batch_size, in_channels, self.x_shape[2] + self.padding[0]*2 , self.x_shape[3] + self.padding[1]*2)
@@ -112,7 +116,22 @@ class Conv2d:
                              self.padding[1]:padded_del_x.shape[3]-self.padding[1]]
         assert del_x.shape == self.x_shape, "del_x shape dont match"
         
-        #TODO: add del_w and del_b
+        print("x_shape : ",self.x_shape)
+        print("del_z.shape: ",del_z.shape)
+        print("stride: ",self.stride)
+        print("padding: ",self.padding)
+        print("kernel_shape: ",self.kernel_shape)
+        modified_del_z = np.zeros((batch_size,self.out_channels,
+                                self.stride[0] * (del_z.shape[2] - 1) +1,
+                                self.stride[1] * (del_z.shape[3] - 1) +1))
+
+        modified_del_z[:,:,::self.stride[0],::self.stride[1]] = del_z
+        
+        print("modified_del_z.shape: ",modified_del_z.shape)
+        print("self.padded_x.shape: ",self.padded_x.shape)
+        del_w = fast_hadamard(self.padded_x,modified_del_z)
+        print("del_w.shape: ",del_w.shape)
+        assert del_w.shape == self.weights.shape, "del_w shape dont match"
         
         return del_x
 
