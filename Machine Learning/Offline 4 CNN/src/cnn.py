@@ -9,7 +9,6 @@ class CNN():
     def add_layer(self,layer):
         self.layers.append(layer)
     
-
     def train(self,x,y_true,lr):
         """
             in: x shape = (batch_size, channels, height, width)
@@ -22,11 +21,13 @@ class CNN():
             print("train output shape: ",x.shape)
         y = x
         print("shape of y_true",y_true.shape)
+        # print("train output:",y)
         
         del_z = y - y_true
         print("shape of del_z",del_z.shape)
         for layer in reversed(self.layers):
             del_z = layer.backward(del_z,lr)
+            print("train del_z shape: ",del_z.shape)
     
     
 

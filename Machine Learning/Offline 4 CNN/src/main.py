@@ -25,7 +25,7 @@ from data_handler import load_dataset
 
 if __name__ == '__main__':
     m = CNN()
-    m.add_layer( Conv2d(out_channels=5,kernel_size=(5,5), stride=1,padding=2))
+    m.add_layer(Conv2d(out_channels=5,kernel_size=(5,5), stride=1,padding=2))
     m.add_layer(ReLU())
     m.add_layer(MaxPool2d(kernel_size=(2,2), stride=2))
     m.add_layer(Conv2d(out_channels=12,kernel_size=(5,5), stride=1,padding=0))

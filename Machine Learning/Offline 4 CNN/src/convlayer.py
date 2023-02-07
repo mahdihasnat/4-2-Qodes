@@ -137,6 +137,14 @@ class Conv2d:
         
         self.weights -= lr*del_w
         
+        
+        # del_z: shape = (batch_size, out_channel, out_height, out_width)
+        # del_b: shape = (out_channel,)
+        del_b = np.sum(del_z,axis=(0,2,3))/batch_size
+        assert del_b.shape == self.biases.shape, "del_b shape dont match"
+        
+        self.biases -=lr * del_b
+        
         return del_x
 
 
