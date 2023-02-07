@@ -1,6 +1,6 @@
 import numpy as np
 from numpy.lib.stride_tricks import as_strided
-from fast_convulation import fast_convulate, fast_hadamard
+from fast_convulation import fast_convulate, fast_hadamard, fast_hadamard_weight_calc
 # cnn convolutional layer
 class Conv2d:
     
@@ -116,22 +116,26 @@ class Conv2d:
                              self.padding[1]:padded_del_x.shape[3]-self.padding[1]]
         assert del_x.shape == self.x_shape, "del_x shape dont match"
         
-        print("x_shape : ",self.x_shape)
-        print("del_z.shape: ",del_z.shape)
-        print("stride: ",self.stride)
-        print("padding: ",self.padding)
-        print("kernel_shape: ",self.kernel_shape)
+        # print("x_shape : ",self.x_shape)
+        # print("del_z.shape: ",del_z.shape)
+        # print("stride: ",self.stride)
+        # print("padding: ",self.padding)
+        # print("kernel_shape: ",self.kernel_shape)
+        # print("self.weights shape: ",self.weights.shape)
         modified_del_z = np.zeros((batch_size,self.out_channels,
                                 self.stride[0] * (del_z.shape[2] - 1) +1,
                                 self.stride[1] * (del_z.shape[3] - 1) +1))
 
         modified_del_z[:,:,::self.stride[0],::self.stride[1]] = del_z
         
-        print("modified_del_z.shape: ",modified_del_z.shape)
-        print("self.padded_x.shape: ",self.padded_x.shape)
-        del_w = fast_hadamard(self.padded_x,modified_del_z)
-        print("del_w.shape: ",del_w.shape)
+        # print("self.padded_x.shape ",self.padded_x.shape)
+        # print("modified_del_z.shape: ",modified_del_z.shape)
+        del_w = fast_hadamard_weight_calc(self.padded_x,modified_del_z)
+        del_w /= batch_size
+        # print("del_w.shape: ",del_w.shape)
         assert del_w.shape == self.weights.shape, "del_w shape dont match"
+        
+        self.weights -= lr*del_w
         
         return del_x
 
