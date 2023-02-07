@@ -30,6 +30,7 @@ class MaxPool2d():
         """
         assert len(x.shape) == 4, "input shape is not 4D"
         self.x_shape = x.shape
+        self.x = x
         out_shape =( (x.shape[2] - self.kernel_shape[0])//self.stride[0] + 1,\
                      (x.shape[3] - self.kernel_shape[1])//self.stride[1] + 1)
         
@@ -38,12 +39,8 @@ class MaxPool2d():
                      x.strides[3] * self.stride[1] , x.strides[2] , x.strides[3] ),
             shape = (x.shape[0], x.shape[1], out_shape[0], out_shape[1], self.kernel_shape[0], self.kernel_shape[1])
                         )
-        reshaped_strided_x = strided_x.reshape(x.shape[0],x.shape[1], out_shape[0], out_shape[1], -1)
-        out_arg = np.argmax(reshaped_strided_x,axis = 4)
-        self.out_arg=out_arg
-        # print("out_arg shape: ",out_arg.shape)
-        # print("out_arg: ",out_arg)
         out_x = strided_x.max(axis=(4,5))
+        self.out_x = out_x
         assert out_x.shape == (x.shape[0], x.shape[1], out_shape[0], out_shape[1])
         return out_x
 
@@ -54,15 +51,19 @@ class MaxPool2d():
         """
         assert len(del_z.shape) == 4 , "del_z is not 4D"
         del_x = np.zeros(self.x_shape)
-        print("self.out_args: ",self.out_arg)
-        p = np.unravel_index(self.out_arg,shape=self.kernel_shape)
-        print("p:",p)
-        # print("p shape:",p.shape)
-        print("del_z shape: ",del_z.shape)
         
-        del_x[:,:,p]+=del_z
-        print(del_x[:,:,p])
+        for i in range(self.kernel_shape[0]):
+            for j in range(self.kernel_shape[1]):
+                print("shape of x:",self.x.shape)
+                print("shape of out_x, ",self.out_x.shape)
+                ins = self.x[:,:,i:i+self.out_x.shape[3]:self.stride[0],j:j+self.out_x.shape[4]:self.stride[1]]
+                print("i=",i,"j=",j)
+                print("shape of ins:",ins.shape)
+                print("self out x: ",self.out_x.shape)
+                multiplier = (ins == self.out_x)
+                del_x[:,:,i::self.stride[0],j::self.stride[1]] += multiplier * del_z
         
+        return del_x
         
 
 if __name__ == '__main__':
