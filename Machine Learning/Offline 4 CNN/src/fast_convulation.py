@@ -9,7 +9,7 @@ def fast_convulate(x,y):
     """
     assert len(x.shape) == 4, "x not in 4D"
     assert len(y.shape) == 4, "y not in 4D"
-    y=np.flip(y,axis = (-2,-1))
+    assert x.shape[1] == y.shape[1], "in_channels dont match"
     n1,m1 = x.shape[-2:]
     n2,m2 = y.shape[-2:]
     n = n1+n2-1
@@ -34,6 +34,18 @@ def fast_convulate(x,y):
     z = z[:,:,n2-1:n1,m2-1:m1]
     assert z.shape == (x.shape[0], y.shape[0], n1-n2+1, m1-m2+1) , "z shape dont match"
     return z
+
+
+def fast_hadamard(x,y):
+    """
+    x: shape = (batch_size, in_channels, height, width)
+    y: shape = (out_channels,in_channels, kernel_height, kernel_height)
+    out : shape = (batch_size, out_channels, height, width)
+    """
+    assert len(x.shape) == 4, "x not in 4D"
+    assert len(y.shape) == 4, "y not in 4D"
+    y=np.flip(y,axis = (-2,-1))
+    return fast_convulate(x,y)
 
 if __name__ == '__main__':
     batch_size = 15

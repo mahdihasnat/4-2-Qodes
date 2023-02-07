@@ -1,6 +1,6 @@
 import numpy as np
 from numpy.lib.stride_tricks import as_strided
-from fast_convulation import fast_convulate
+from fast_convulation import fast_convulate, fast_hadamard
 # cnn convolutional layer
 class Conv2d:
     
@@ -47,6 +47,7 @@ class Conv2d:
         assert len(x.shape) == 4, "input shape is not 4D"
         in_channels = x.shape[1]
         batch_size = x.shape[0]
+        self.x_shape = x.shape
         
         if self.weights is None:
             # He initialization for RElu
@@ -71,7 +72,7 @@ class Conv2d:
         # https://numpy.org/doc/stable/reference/generated/numpy.pad.html
         padded_x = np.pad(x , ((0,0),(0,0),(self.padding[0],self.padding[0]),(self.padding[1],self.padding[1])),\
                             mode='constant', constant_values=0)
-        out_x = fast_convulate(padded_x,self.weights)
+        out_x = fast_hadamard(padded_x,self.weights)
         out_x = out_x[:,:,::self.stride[0],::self.stride[1]]
         
         self.biases = self.biases.reshape((1,self.out_channels,1,1))
@@ -80,6 +81,41 @@ class Conv2d:
         
         assert out_x.shape == (batch_size,self.out_channels,out_shape[0],out_shape[1])
         return out_x
+    
+    
+    def backward(self, del_z, lr):
+        """
+            in del_z: (batch_size, out_channels, out_height, out_width)
+            out del_x: (batch_size, in_channels, in_height, in_width)
+        """
+        assert len(del_z.shape) == 4, "input shape is not 4D"
+        assert del_z.shape[1] == self.out_channels, "output channel dont match"
+        
+        batch_size = self.x_shape[0]
+        in_channels = self.x_shape[1]
+        
+        # https://medium.com/@mayank.utexas/backpropagation-for-convolution-with-strides-8137e4fc2710
+        modified_del_z = np.zeros( (batch_size, self.out_channels,
+                                (del_z.shape[2]-1)*(self.stride[0]) + self.kernel_shape[0]*2-1,
+                                (del_z.shape[3]-1)*(self.stride[1]) + self.kernel_shape[1]*2-1))
+        modified_del_z[:,:,self.kernel_shape[0]-1:modified_del_z.shape[-2]-self.kernel_shape[0]+1,
+                       self.kernel_shape[1]-1:modified_del_z.shape[-1]-self.kernel_shape[1]+1] = del_z
+        swapped_weights = np.swapaxes(self.weights,0,1)
+        padded_del_x = fast_convulate(modified_del_z,swapped_weights)
+        # padded_del_x = np.sum(padded_del_x, axis = (-2,-1) )
+        padded_shape = (batch_size, in_channels, self.x_shape[2] + self.padding[0]*2 , self.x_shape[3] + self.padding[1]*2)
+        
+        # print("padded_del_x.shape: ",padded_del_x.shape)
+        # print("padded_shape: ",padded_shape)
+        assert padded_del_x.shape == padded_shape, "padded shape dont match"
+        
+        del_x = padded_del_x[:,:,self.padding[0]:padded_del_x.shape[2]-self.padding[0],
+                             self.padding[1]:padded_del_x.shape[3]-self.padding[1]]
+        assert del_x.shape == self.x_shape, "del_x shape dont match"
+        
+        #TODO: add del_w and del_b
+        
+        return del_x
 
 
 if __name__ == '__main__':
