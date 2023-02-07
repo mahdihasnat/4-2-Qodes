@@ -8,7 +8,7 @@ import matplotlib.image as mpimg
 # Required magic to display matplotlib plots in notebooks
 # %matplotlib inline
 
-def load_dataset():
+def load_dataset(image_shape=(28,28)):
     base_folder = './../resource/NumtaDB_with_aug'
     sub_folder = '/training-b/'
     csv_file_name = base_folder + '/training-b.csv'
@@ -17,7 +17,7 @@ def load_dataset():
     print("Total rows: {0}".format(csv.shape[0]))
     x_max = 0
     y_max = 0
-    image_shape = (128,128)
+    
     channel = 1
     x_list = []
     y_list = []
@@ -46,7 +46,8 @@ def load_dataset():
             # print(img)
             img=img.astype(np.float32)
             # print(img.dtype)
-            img = img/np.maximum(img.max(),1)
+            # img = img/np.maximum(img.max(),1)
+            img /= 255
             # print(img.dtype)
             # print("Shape of img",img.shape)
    
@@ -62,9 +63,9 @@ def load_dataset():
         else:
             print("File does not exist:",image_fila_name)
         pass
-    sz = min(5,len(x_list))
-    x_list = x_list[:sz]
-    y_list = y_list[:sz]
+    # sz = min(5,len(x_list))
+    # x_list = x_list[:sz]
+    # y_list = y_list[:sz]
     # convert x_list to numpy array
     x=np.array(x_list)
     y=np.array(y_list)
@@ -74,6 +75,3 @@ def load_dataset():
     print("y shape: {0}".format(y.shape))
     
     return x,y
-    
-
-load_dataset()

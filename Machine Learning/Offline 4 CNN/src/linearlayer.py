@@ -49,6 +49,7 @@ class LinearLayer():
         assert del_b.shape == self.biases.shape, "del_b shape dont match"
         del_x = np.matmul(del_z, self.weights.T)
         assert del_x.shape == self.x.shape, "del_x shape dont match"
+        
         self.weights -= lr*del_w
         self.biases -= lr*del_b
         
