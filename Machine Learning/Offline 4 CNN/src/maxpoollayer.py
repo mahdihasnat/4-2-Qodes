@@ -54,14 +54,17 @@ class MaxPool2d():
         
         for i in range(self.kernel_shape[0]):
             for j in range(self.kernel_shape[1]):
-                print("shape of x:",self.x.shape)
-                print("shape of out_x, ",self.out_x.shape)
-                ins = self.x[:,:,i:i+self.out_x.shape[3]:self.stride[0],j:j+self.out_x.shape[4]:self.stride[1]]
-                print("i=",i,"j=",j)
-                print("shape of ins:",ins.shape)
-                print("self out x: ",self.out_x.shape)
+                # print("shape of x:",self.x.shape)
+                # print("shape of out_x, ",self.out_x.shape)
+                # print("self stride ",self.stride)
+                # print("self.out_x ",self.out_x.shape)
+                ins = self.x[:,:,i:i+self.out_x.shape[2]*self.stride[0]:self.stride[0],j:j+self.out_x.shape[3]*self.stride[1]:self.stride[1]]
+                # print("i=",i,"j=",j)
+                # print("shape of ins:",ins.shape)
+                # print("self out x: ",self.out_x.shape)
                 multiplier = (ins == self.out_x)
-                del_x[:,:,i::self.stride[0],j::self.stride[1]] += multiplier * del_z
+                
+                del_x[:,:,i:i+self.out_x.shape[2]*self.stride[0]:self.stride[0],j:j+self.out_x.shape[3]*self.stride[1]:self.stride[1]] += multiplier * del_z
         
         return del_x
         
@@ -80,3 +83,4 @@ if __name__ == '__main__':
     a = maxpoollayer.forward(x)
     print("a:",a)
     b = maxpoollayer.backward(a,0.1)
+    print("b: ",b)
