@@ -102,7 +102,6 @@ class Conv2d:
                        self.kernel_shape[1]-1:modified_del_z.shape[-1]-self.kernel_shape[1]+1] = del_z
         swapped_weights = np.swapaxes(self.weights,0,1)
         padded_del_x = fast_convulate(modified_del_z,swapped_weights)
-        # padded_del_x = np.sum(padded_del_x, axis = (-2,-1) )
         padded_shape = (batch_size, in_channels, self.x_shape[2] + self.padding[0]*2 , self.x_shape[3] + self.padding[1]*2)
         
         # print("padded_del_x.shape: ",padded_del_x.shape)
