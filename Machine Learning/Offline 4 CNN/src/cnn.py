@@ -27,6 +27,7 @@ class CNN():
         # print("shape of y_true",y_true.shape)
         # print("train output:",y)
         print(f"Cross entropy loss: {self.cross_entrpy_loss(y,y_true)}")
+        
         del_z = y - y_true
         # print("shape of del_z",del_z.shape)
         for layer in reversed(self.layers):

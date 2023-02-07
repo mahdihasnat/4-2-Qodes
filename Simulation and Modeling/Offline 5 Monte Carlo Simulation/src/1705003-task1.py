@@ -24,7 +24,7 @@ def prob(n,m,s,iter):
     return tot/iter
 
 n=100
-s=3
+s=10
 iter=1000000
 x = np.arange(0,n)
 y = np.array([prob(n,m,s,iter) for m in x])

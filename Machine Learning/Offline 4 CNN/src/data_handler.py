@@ -54,7 +54,9 @@ def load_dataset(image_shape=(28,28)):
             # print("shape of x",x.shape)
             # print("shape of y",y.shape)
             x_list.append(img)
-            y_list.append(np.array([row['digit']]))
+            y_np = np.zeros((10,))
+            y_np[row['digit']] = 1
+            y_list.append(np.array(y_np))
             
             # print(img)
             # print("shape of x",x.shape)
@@ -73,5 +75,12 @@ def load_dataset(image_shape=(28,28)):
     print("image_shape: {0}".format(image_shape))
     print("x shape: {0}".format(x.shape))
     print("y shape: {0}".format(y.shape))
+    assert x.shape[0] == y.shape[0], "x and y have different number of rows"
+    assert x.shape[1] == channel, "x has different number of channels"
+    assert x.shape[2] == image_shape[0], "x has different height"
+    assert x.shape[3] == image_shape[1], "x has different width"
+    assert y.shape[1] == 10, "y has different number of classes"
+    assert len(x.shape) == 4, "x shape is not 4D"
+    assert len(y.shape) == 2, "y shape is not 2D"
     
     return x,y
