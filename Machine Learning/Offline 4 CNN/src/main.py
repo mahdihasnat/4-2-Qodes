@@ -55,28 +55,44 @@ if __name__ == '__main__':
     epoch = 20
     batch_size = 64
     total_sample = x.shape[0]
-    total_batch = (total_sample+batch_size-1)//batch_size
-    lr = 0.01
+    lr = 0.1
+    train_ratio = 0.8
+    
+    # shuffle split train and validation
+    perm = np.random.permutation(total_sample)
+    x = x[perm]
+    y = y[perm]
+    
+    train_size = int(total_sample*train_ratio)
+    x_train = x[:train_size]
+    x_validation = x[train_size:]
+    y_train = y[:train_size]
+    y_validation = y[train_size:]
+    del x
+    del y
+    
+    total_batch_train = (x_train.shape[0]+batch_size-1)//batch_size
+    total_batch_validation = (x_validation.shape[0]+batch_size-1)//batch_size
     
     y_loss=[]
     y_f1=[]
     y_accuracy=[]
-    
     for i in tqdm.tqdm(range(epoch)):
         print(f"Epoch {i+1}:")
-        for j in tqdm.tqdm(range(total_batch), "training"):
+        for j in tqdm.tqdm(range(total_batch_train), "training"):
             start = j*batch_size
-            end = min((j+1)*batch_size,total_sample)
-            m.train(x[start:end],y[start:end],lr)
-        y_pred = np.zeros(y.shape)
-        for j in tqdm.tqdm(range(total_batch), "predicting"):
+            end = min((j+1)*batch_size,y_train.shape[0])
+            m.train(x_train[start:end],y_train[start:end],lr)
+            
+        y_pred = np.zeros(y_validation.shape)
+        for j in tqdm.tqdm(range(total_batch_validation), "predicting"):
             start = j*batch_size
-            end = min((j+1)*batch_size,total_sample)
-            y_pred[start:end]=m.predict(x[start:end])
+            end = min((j+1)*batch_size,y_validation.shape[0])
+            y_pred[start:end]=m.predict(x_validation[start:end])
         
-        y_loss.append(skm.log_loss(y_true = y,y_pred = y_pred))
+        y_loss.append(skm.log_loss(y_true = y_validation,y_pred = y_pred))
         y_pred_value = np.argmax(y_pred,axis=1)
-        y_true_value = np.argmax(y,axis=1)
+        y_true_value = np.argmax(y_validation,axis=1)
         y_accuracy.append(skm.accuracy_score(y_true = y_true_value,y_pred = y_pred_value))
         y_f1.append(skm.f1_score(y_true = y_true_value,y_pred = y_pred_value,average='macro'))
         
@@ -97,14 +113,17 @@ if __name__ == '__main__':
     
     plt.figure()
     plt.plot(x_axis,y_loss)
+    plt.xlabel("Epoch")
     plt.title("Cross entropy Loss")
     
     plt.figure()
     plt.plot(x_axis,y_accuracy)
+    plt.xlabel("Epoch")
     plt.title("Accuracy")
     
     plt.figure()
     plt.plot(x_axis,y_f1)
+    plt.xlabel("Epoch")
     plt.title("F1 score")
     
     
