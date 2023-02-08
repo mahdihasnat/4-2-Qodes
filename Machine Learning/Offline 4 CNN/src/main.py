@@ -51,7 +51,7 @@ if __name__ == '__main__':
     # m.add_layer(Conv2d(out_channels=12,kernel_size=(5,5), stride=1,padding=0))
     
     
-    x,y = load_dataset(image_shape=(28,28),sample_bound=100)
+    x,y = load_dataset(image_shape=(28,28),sample_bound=1000)
     epoch = 50
     batch_size = 64
     total_sample = x.shape[0]
@@ -74,6 +74,8 @@ if __name__ == '__main__':
             y_pred[start:end]=m.predict(x[start:end])
         
         y_loss.append(skm.log_loss(y_true = y,y_pred = y_pred))
+        y_accuracy.append(skm.accuracy_score(y_true = np.argmax(y,axis=1), 
+                                             y_pred = np.argmax(y_pred,axis=1)))
         # if (i+1)%10 == 0:
         #     for k in range(start,end):
         #         # show image and prediction
@@ -85,9 +87,18 @@ if __name__ == '__main__':
         #         print("")
     
     y_loss = np.array(y_loss)
+    y_accuracy = np.array(y_accuracy)
     x_axis = np.arange(epoch)
+    
     plt.plot(x_axis,y_loss)
+    plt.title("Cross entropy Loss")
     plt.show()
+    
+    plt.plot(x_axis,y_accuracy)
+    plt.title("Accuracy")
+    plt.show()
+    
+    
             
 
     
