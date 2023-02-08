@@ -19,17 +19,15 @@ from sklearn import model_selection as skms
 
 from cnn import get_lenet
 
+import seaborn as sns
 
-if __name__ == '__main__':
-    np.random.seed(0)
-    
+x,y = load_dataset(image_shape=(32,32),sample_bound=-1)
+
+def train(lr,epoch):
     m = get_lenet()
     
-    x,y = load_dataset(image_shape=(32,32),sample_bound=100)
-    epoch = 5
     batch_size = 128
     total_sample = x.shape[0]
-    lr = 0.01
     train_ratio = 0.8
     
     # shuffle split train and validation
@@ -40,6 +38,7 @@ if __name__ == '__main__':
     
     print("Train size: {}".format(x_train.shape[0]))
     print("Validation size: {}".format(x_validation.shape[0]))
+    str_pre = "lr_{:.2f}_train_{}_m_{}_e_{}_".format(lr,x_train.shape[0],m.name,epoch)
     
     total_batch_train = (x_train.shape[0]+batch_size-1)//batch_size
     total_batch_validation = (x_validation.shape[0]+batch_size-1)//batch_size
@@ -48,7 +47,7 @@ if __name__ == '__main__':
     y_f1=[]
     y_accuracy=[]
     y_loss_train=[]
-    stat_d = pd.DataFrame(columns=["epoch","loss","f1","accuracy","loss_train"])
+    stat_d = pd.DataFrame(columns=["epoch","loss_validation","loss_train","f1","accuracy"])
     for i in tqdm.tqdm(range(epoch)):
         print(f"Epoch {i+1}:")
         for j in tqdm.tqdm(range(total_batch_train), "training"):
@@ -95,14 +94,24 @@ if __name__ == '__main__':
         print(f"F1 score: {f1_score_value}")
         print(f"Confusion matrix: {confusion_matrix}")
         
-        stat_d = pd.concat([stat_d,pd.DataFrame({"epoch":i+1,"loss":loss_value,"f1":f1_score_value,
-                                                 "accuracy":accuracy_value,"loss_train":loss_value_train},
+        plt.figure(figsize=(10,10))
+        ax = sns.heatmap(confusion_matrix, annot=True)
+        ax.set_xlabel("Predicted label")
+        ax.set_ylabel("True label")
+        plt.savefig("figs/"+str_pre+"i_{}_confusion_matrix.png".format(i+1))
+        
+        
+        stat_d = pd.concat([stat_d,pd.DataFrame({"epoch":i+1,"loss_validation":loss_value,
+                                                 "loss_train":loss_value_train,
+                                                 "f1":f1_score_value,
+                                                 "accuracy":accuracy_value},
                                                 index=[0])],ignore_index=True)
-        stat_d.to_csv("data/stat_lr_{:.2f}_train_{}_m_{}.csv".format(lr,x_train.shape[0],m.name),index=False)
+        stat_d.to_csv("data/stat_lr_{:.6f}_train_{}_m_{}.csv".format(lr,x_train.shape[0],m.name),index=False)
         
         
         m.clean()
-        pk.dump(m,open("models/model_e{}_f1_{:.2f}_acc_{:3f}_m_{}.pkl".format(i+1,f1_score_value,accuracy_value,m.name),"wb"))
+        pk.dump(m,open("models/model_e{}_f1_{:.2f}_acc_{:.3f}_lr_{:.6}_m_{}.pkl".
+                       format(i+1,f1_score_value,accuracy_value,lr,m.name),"wb"))
         
         
     y_loss_validation = np.array(y_loss_validation)
@@ -110,7 +119,6 @@ if __name__ == '__main__':
     y_f1 = np.array(y_f1)
     x_axis = np.arange(epoch)
     
-    str_pre = "lr_{:.2f}_train_{}_m_{}_e_{}_".format(lr,x_train.shape[0],m.name,epoch)
     
     plt.figure()
     plt.plot(x_axis,y_loss_validation)
@@ -139,4 +147,37 @@ if __name__ == '__main__':
     plt.xlabel("Epoch")
     plt.title("F1 score")
     plt.savefig("figs/"+str_pre+"validation_f1.png")
+    
+
+
+if __name__ == '__main__':
+    np.random.seed(0)
+    
+    train(0.01,100)
+    
+    lrs =[]
+    
+    lrs.append(0.000001)
+    lrs.append(0.00001)
+    lrs.append(0.0001)
+    lrs.append(0.0002)
+    lrs.append(0.0003)
+    lrs.append(0.0004)
+    lrs.append(0.0005)
+    lrs.append(0.002)
+    lrs.append(0.003)
+    lrs.append(0.004)
+    lrs.append(0.005)
+    lrs.append(0.01)
+    lrs.append(0.02)
+    lrs.append(0.03)
+    lrs.append(0.04)
+    lrs.append(0.05)
+    lrs.append(0.1)
+    lrs.append(0.2)
+    lrs.append(0.5)
+    
+    for lr in lrs:
+        print("Learning rate: ",lr)
+        train(lr,epoch=100)
     
