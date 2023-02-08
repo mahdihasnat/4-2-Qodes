@@ -39,12 +39,12 @@ if __name__ == '__main__':
     
     m = get_lenet()
     
-    x,y = load_dataset(image_shape=(32,32),sample_bound=100)
-    epoch = 5
-    batch_size = 64
+    x,y = load_dataset(image_shape=(32,32),sample_bound=1000)
+    epoch = 100
+    batch_size = 128
     total_sample = x.shape[0]
-    lr = 0.01
-    train_ratio = 0.8
+    lr = 0.001
+    train_ratio = 0.7
     
     # shuffle split train and validation
     perm = np.random.permutation(total_sample)
@@ -58,6 +58,9 @@ if __name__ == '__main__':
     y_validation = y[train_size:]
     del x
     del y
+    
+    print("Train size: {}".format(x_train.shape[0]))
+    print("Validation size: {}".format(x_validation.shape[0]))
     
     total_batch_train = (x_train.shape[0]+batch_size-1)//batch_size
     total_batch_validation = (x_validation.shape[0]+batch_size-1)//batch_size
@@ -113,7 +116,7 @@ if __name__ == '__main__':
         print(f"Confusion matrix: {confusion_matrix}")
         
         m.clean()
-        pk.dump(m,open("model_e{}_f1_{:.2f}.pkl".format(i+1,f1_score_value),"wb"))
+        pk.dump(m,open("models/model_e{}_f1_{:.2f}_acc_{:3f}.pkl".format(i+1,f1_score_value,accuracy_value),"wb"))
         
         
     y_loss = np.array(y_loss)
@@ -123,27 +126,31 @@ if __name__ == '__main__':
     
     plt.figure()
     plt.plot(x_axis,y_loss)
+    plt.xticks(x_axis)
     plt.xlabel("Epoch")
     plt.title("Validation Cross entropy Loss")
-    plt.savefig("validation_loss.png")
+    plt.savefig("figs/validation_loss.png")
     
     plt.figure()
     plt.plot(x_axis,y_loss_train)
+    plt.xticks(x_axis)
     plt.xlabel("Epoch")
     plt.title("Train Cross entropy Loss")
-    plt.savefig("train_loss.png")
+    plt.savefig("figs/train_loss.png")
     
     plt.figure()
     plt.plot(x_axis,y_accuracy)
+    plt.xticks(x_axis)
     plt.xlabel("Epoch")
     plt.title("Accuracy")
-    plt.savefig("validation_acc.png")
+    plt.savefig("figs/validation_acc.png")
     
     plt.figure()
     plt.plot(x_axis,y_f1)
+    plt.xticks(x_axis)
     plt.xlabel("Epoch")
     plt.title("F1 score")
-    plt.savefig("validation_f1.png")
+    plt.savefig("figs/validation_f1.png")
     
     
     plt.savefig("result.png")

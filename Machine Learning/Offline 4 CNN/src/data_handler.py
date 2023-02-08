@@ -78,10 +78,12 @@ def get_dataset(image_shape,channel,sample_bound,base_folder,csv_file_name):
 
 def load_dataset(image_shape=(28,28),sample_bound=-1):
     base_folder = './../resource/NumtaDB_with_aug'
-    csv_file_name ='training-a.csv'
     x_list = []
     y_list = []
     channel = 1
+    
+    
+    csv_file_name = 'training-b.csv'
     tx,ty= get_dataset(
                        image_shape=image_shape,
                        channel = channel,
@@ -91,6 +93,29 @@ def load_dataset(image_shape=(28,28),sample_bound=-1):
                        )
     x_list.extend(tx)
     y_list.extend(ty)
+    
+    csv_file_name ='training-a.csv'
+    tx,ty= get_dataset(
+                       image_shape=image_shape,
+                       channel = channel,
+                       sample_bound=sample_bound,
+                       base_folder=base_folder,
+                       csv_file_name=csv_file_name
+                       )
+    x_list.extend(tx)
+    y_list.extend(ty)
+    
+    csv_file_name = 'training-c.csv'
+    tx,ty= get_dataset(
+                       image_shape=image_shape,
+                       channel = channel,
+                       sample_bound=sample_bound,
+                       base_folder=base_folder,
+                       csv_file_name=csv_file_name
+                       )
+    x_list.extend(tx)
+    y_list.extend(ty)
+    
     
     
     x=np.array(x_list)
