@@ -35,6 +35,9 @@ class Conv2d:
         
         self.weights = None
         self.biases = None
+        
+        self.x_shape  = None
+        self.padded_x = None
     
     
     def forward(self,x):
@@ -147,6 +150,10 @@ class Conv2d:
         
         return del_x
 
+    def clean(self):
+        self.x_shape  = None
+        self.padded_x = None
+        
 
 if __name__ == '__main__':
     
