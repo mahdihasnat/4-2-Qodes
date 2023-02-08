@@ -21,6 +21,9 @@ class SoftMax():
         assert len(y_pred_minus_y_true.shape) == 2, "The input of SoftMax must be 2-D"
         return y_pred_minus_y_true
 
+    def clean(self):
+        pass
+
 if __name__ == '__main__':
     
     x_shape = (100,10)

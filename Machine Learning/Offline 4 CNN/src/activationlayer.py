@@ -7,7 +7,7 @@ class ReLU():
         """
             https://pytorch.org/docs/stable/generated/torch.nn.ReLU.html
         """
-        
+        self.x = None
 
     def forward(self, x):
         """
@@ -26,6 +26,9 @@ class ReLU():
         
         return del_z * (self.x >= 0)
 
+    def clean(self):
+        self.x = None
+    
 
 if __name__ == '__main__':
     # test

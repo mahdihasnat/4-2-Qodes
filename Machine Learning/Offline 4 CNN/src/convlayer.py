@@ -36,6 +36,7 @@ class Conv2d:
         self.weights = None
         self.biases = None
         
+        # local variables
         self.x_shape  = None
         self.padded_x = None
     

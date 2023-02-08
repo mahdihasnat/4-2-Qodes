@@ -8,6 +8,9 @@ class LinearLayer():
         self.weights = None
         self.biases = None
         
+        # local vars
+        self.x = None
+        
     def forward(self,x):
         """
             in x: (batch_size, in_features)
@@ -43,7 +46,7 @@ class LinearLayer():
         # https://www.adityaagrawal.net/blog/deep_learning/bprop_fc
         batch_size = del_z.shape[0]
         
-        del_w = np.matmul(self.x.T, del_z)
+        del_w = np.matmul(self.x.T, del_z)/batch_size
         assert del_w.shape == self.weights.shape, "del_w shape dont match"
         del_b = np.sum(del_z, axis = 0)
         assert del_b.shape == self.biases.shape, "del_b shape dont match"
@@ -55,6 +58,8 @@ class LinearLayer():
         
         return del_x
         
+    def clean(self):
+        self.x = None
     
 
 if __name__ == '__main__':

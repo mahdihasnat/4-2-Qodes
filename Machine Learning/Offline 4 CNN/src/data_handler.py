@@ -48,6 +48,7 @@ def load_dataset(image_shape=(28,28),sample_bound=-1):
             # print(img.dtype)
             # img = img/np.maximum(img.max(),1)
             img /= 255
+            img = 1-img
             # print(img.dtype)
             # print("Shape of img",img.shape)
    

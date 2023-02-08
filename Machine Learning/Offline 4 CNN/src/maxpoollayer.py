@@ -23,6 +23,10 @@ class MaxPool2d():
         assert self.kernel_shape[0] > 0 and self.kernel_shape[1] > 0, "kernel size must be positive"
         assert self.stride[0] > 0 and self.stride[1] > 0, "stride must be positive"
         
+        # local variables
+        self.x = None
+        self.out_x = None
+        
     def forward(self,x):
         """
             input shape = (batch_size, in_channels, height, width)
@@ -68,6 +72,9 @@ class MaxPool2d():
         
         return del_x
         
+    def clean(self):
+        self.x = None
+        self.out_x = None
 
 if __name__ == '__main__':
     x_shape = (1,1,3,3)
