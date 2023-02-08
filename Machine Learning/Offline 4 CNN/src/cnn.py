@@ -48,3 +48,6 @@ class CNN():
             x= layer.forward(x)
         return x
 
+    def clean(self):
+        for layer in self.layers:
+            layer.clean()
