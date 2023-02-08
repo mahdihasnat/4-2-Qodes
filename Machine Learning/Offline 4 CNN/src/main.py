@@ -51,24 +51,24 @@ if __name__ == '__main__':
     
     
     x,y = load_dataset(image_shape=(28,28),sample_bound=10000)
-    epoch = 1
+    epoch = 50
     batch_size = 64
     total_sample = x.shape[0]
     total_batch = (total_sample+batch_size-1)//batch_size
     lr = 0.01
     
-    for i in range(epoch):
+    y_loss=[]
+    y_f1=[]
+    y_accuracy=[]
+    for i in tqdm.tqdm(range(epoch)):
         print(f"Epoch {i+1}:")
-        y_loss=[]
         for j in tqdm.tqdm(range(total_batch)):
             start = j*batch_size
             end = min((j+1)*batch_size,total_sample)
             m.train(x[start:end],y[start:end],lr)
-            y_loss.append(m.log_loss)
-        x_axis = np.arange(total_batch)
-        y_loss = np.array(y_loss)
-        plt.plot(x_axis,y_loss)
-        plt.show()
+        
+        m.predict(x,y)
+        y_loss.append(m.log_loss)
         # if (i+1)%10 == 0:
         #     for k in range(start,end):
         #         # show image and prediction
@@ -78,6 +78,11 @@ if __name__ == '__main__':
         #         cv2.imshow("image",x[k].reshape(28,28))
         #         input()
         #         print("")
+    
+    y_loss = np.array(y_loss)
+    x_axis = np.arange(epoch)
+    plt.plot(x_axis,y_loss)
+    plt.show()
             
 
     

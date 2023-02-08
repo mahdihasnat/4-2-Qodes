@@ -31,7 +31,6 @@ class CNN():
         # print("shape of y_true",y_true.shape)
         # print("train output:",y)
         # print(f"Cross entropy loss: {self.cross_entrpy_loss(y,y_true)}")
-        self.log_loss =skm.log_loss(y_true=y_true,y_pred=y)
         
         del_z = y - y_true
         # print("shape of del_z",del_z.shape)
@@ -39,9 +38,18 @@ class CNN():
             del_z = layer.backward(del_z,lr)
             # print("train del_z shape: ",del_z.shape)
     
-    def predict(self,x):
+    def predict(self,x,y_true):
+        """
+            in: x shape = (batch_size, channels, height, width)
+            in: y_true shape = (batch_size, classes)
+        """
         assert len(x.shape) == 4, "input shape is not 4D"
+        assert len(y_true.shape) == 2
+        assert x.shape[0] == y_true.shape[0], "batch size dont match"
         for layer in self.layers:
             x= layer.forward(x)
+        assert x.shape == y_true.shape, "y shape dont match"
+        self.log_loss =skm.log_loss(y_true=y_true,y_pred=x)
+        
         return x
 
