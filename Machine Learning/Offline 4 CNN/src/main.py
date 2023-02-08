@@ -12,6 +12,7 @@ from softmaxlayer import SoftMax
 from data_handler import load_dataset
 from matplotlib import pyplot as plt
 import tqdm
+from sklearn import metrics as skm
 
 import numpy as np
 import cv2
@@ -50,7 +51,7 @@ if __name__ == '__main__':
     # m.add_layer(Conv2d(out_channels=12,kernel_size=(5,5), stride=1,padding=0))
     
     
-    x,y = load_dataset(image_shape=(28,28),sample_bound=10000)
+    x,y = load_dataset(image_shape=(28,28),sample_bound=100)
     epoch = 50
     batch_size = 64
     total_sample = x.shape[0]
@@ -62,13 +63,17 @@ if __name__ == '__main__':
     y_accuracy=[]
     for i in tqdm.tqdm(range(epoch)):
         print(f"Epoch {i+1}:")
-        for j in tqdm.tqdm(range(total_batch)):
+        for j in tqdm.tqdm(range(total_batch), "training"):
             start = j*batch_size
             end = min((j+1)*batch_size,total_sample)
             m.train(x[start:end],y[start:end],lr)
+        y_pred = np.zeros(y.shape)
+        for j in tqdm.tqdm(range(total_batch), "predicting"):
+            start = j*batch_size
+            end = min((j+1)*batch_size,total_sample)
+            y_pred[start:end]=m.predict(x[start:end])
         
-        m.predict(x,y)
-        y_loss.append(m.log_loss)
+        y_loss.append(skm.log_loss(y_true = y,y_pred = y_pred))
         # if (i+1)%10 == 0:
         #     for k in range(start,end):
         #         # show image and prediction
