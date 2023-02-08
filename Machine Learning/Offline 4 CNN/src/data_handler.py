@@ -5,35 +5,33 @@ import os
 import matplotlib.pyplot as plt
 import matplotlib.image as mpimg
 
+
+import os
 # Required magic to display matplotlib plots in notebooks
 # %matplotlib inline
 
-def load_dataset(image_shape=(28,28),sample_bound=-1):
-    base_folder = './../resource/NumtaDB_with_aug'
-    sub_folder = '/training-a/'
-    csv_file_name = base_folder + '/training-a.csv'
-    csv = pd.read_csv(csv_file_name)
-    
+
+def get_dataset(image_shape,channel,sample_bound,base_folder,csv_file_name):
+    csv = pd.read_csv(os.path.join(base_folder,csv_file_name))
     print("Total rows: {0}".format(csv.shape[0]))
-    x_max = 0
-    y_max = 0
     
-    channel = 1
     x_list = []
     y_list = []
+    
     for index, row in csv.iterrows():
         # print(row['filename'])
         # print(row['digit'])
-        image_fila_name = base_folder+sub_folder+row['filename']
-        # read image using opencv or pillow
+        # print(row['database name'])
+        subfolder = row['database name']
+        image_fila_name = os.path.join(base_folder,subfolder,row['filename'])
+        # # read image using opencv or pillow
         
         if os.path.exists(image_fila_name):
             # print("File exists")
             img = cv2.imread(image_fila_name, cv2.IMREAD_GRAYSCALE)
             # print(img.shape)
             # show image
-            x_max = max(x_max, img.shape[0])
-            y_max = max(y_max, img.shape[1])
+            
             img = cv2.resize(img, image_shape)
             # plt.imshow(img, cmap='gray', interpolation='bicubic')
             # plt.show()
@@ -68,10 +66,26 @@ def load_dataset(image_shape=(28,28),sample_bound=-1):
         else:
             print("File does not exist:",image_fila_name)
         pass
-    # sz = min(5,len(x_list))
-    # x_list = x_list[:sz]
-    # y_list = y_list[:sz]
-    # convert x_list to numpy array
+
+    return x_list,y_list
+
+def load_dataset(image_shape=(28,28),sample_bound=-1):
+    base_folder = './../resource/NumtaDB_with_aug'
+    csv_file_name ='training-a.csv'
+    x_list = []
+    y_list = []
+    channel = 1
+    tx,ty= get_dataset(
+                       image_shape=image_shape,
+                       channel = channel,
+                       sample_bound=sample_bound,
+                       base_folder=base_folder,
+                       csv_file_name=csv_file_name
+                       )
+    x_list.extend(tx)
+    y_list.extend(ty)
+    
+    
     x=np.array(x_list)
     y=np.array(y_list)
     # print("x_max: {0}, y_max: {1}".format(x_max, y_max))
