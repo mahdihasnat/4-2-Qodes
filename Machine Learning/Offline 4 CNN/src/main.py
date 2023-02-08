@@ -28,34 +28,36 @@ import cv2
 # FC 10
 # Softmax
 
-if __name__ == '__main__':
-    # np.random.seed(0)
-    
+def get_lenet():
     m = CNN()
-    m.add_layer(Conv2d(out_channels=5,kernel_size=(5,5), stride=1,padding=2))
+    m.add_layer(Conv2d(out_channels=6,kernel_size=(5,5), stride=1,padding=0))
     m.add_layer(ReLU())
     m.add_layer(MaxPool2d(kernel_size=(2,2), stride=2))
-    m.add_layer(Conv2d(out_channels=12,kernel_size=(5,5), stride=1,padding=0))
+    m.add_layer(Conv2d(out_channels=16,kernel_size=(5,5), stride=1,padding=0))
     m.add_layer(ReLU())
     m.add_layer(MaxPool2d(kernel_size=(2,2), stride=2))
-    m.add_layer(Conv2d(out_channels=100,kernel_size=(5,5), stride=1,padding=0))
+    m.add_layer(FlatteningLayer())
+    m.add_layer(LinearLayer(out_features=120))
+    m.add_layer(ReLU())
+    m.add_layer(FlatteningLayer())
+    m.add_layer(LinearLayer(out_features=84))
     m.add_layer(ReLU())
     m.add_layer(FlatteningLayer())
     m.add_layer(LinearLayer(out_features=10))
     m.add_layer(SoftMax())
     
-    # # Lanet
-    # m.add_layer(Conv2d(out_channels=6,kernel_size=(5,5), stride=1,padding=2))
-    # m.add_layer(ReLU())
-    # m.add_layer(MaxPool2d(kernel_size=(2,2), stride=2))
-    # m.add_layer(Conv2d(out_channels=12,kernel_size=(5,5), stride=1,padding=0))
+    return m
+
+if __name__ == '__main__':
+    # np.random.seed(0)
     
+    m = get_lenet()
     
-    x,y = load_dataset(image_shape=(28,28),sample_bound=-1)
+    x,y = load_dataset(image_shape=(32,32),sample_bound=10000)
     epoch = 20
     batch_size = 64
     total_sample = x.shape[0]
-    lr = 0.1
+    lr = 0.01
     train_ratio = 0.8
     
     # shuffle split train and validation
@@ -90,22 +92,24 @@ if __name__ == '__main__':
             end = min((j+1)*batch_size,y_validation.shape[0])
             y_pred[start:end]=m.predict(x_validation[start:end])
         
-        y_loss.append(skm.log_loss(y_true = y_validation,y_pred = y_pred))
+        loss_value = skm.log_loss(y_true = y_validation,y_pred = y_pred)
+        y_loss.append(loss_value)
+        
+        
         y_pred_value = np.argmax(y_pred,axis=1)
         y_true_value = np.argmax(y_validation,axis=1)
-        y_accuracy.append(skm.accuracy_score(y_true = y_true_value,y_pred = y_pred_value))
-        y_f1.append(skm.f1_score(y_true = y_true_value,y_pred = y_pred_value,average='macro'))
         
-        # if (i+1)%10 == 0:
-        #     for k in range(start,end):
-        #         # show image and prediction
-        #         print("y_true:",y[k:k+1])
-        #         print("y_pred:",m.predict(x[k:k+1]))
-        #         print("y_pred:",np.argmax(m.predict(x[k:k+1])))
-        #         cv2.imshow("image",x[k].reshape(28,28))
-        #         input()
-        #         print("")
-    
+        accuracy_value = skm.accuracy_score(y_true = y_true_value,y_pred = y_pred_value)
+        y_accuracy.append(accuracy_value)
+        
+        f1_score_value = skm.f1_score(y_true = y_true_value,y_pred = y_pred_value,average='macro')
+        y_f1.append(f1_score_value)
+        
+        print(f"Loss: {loss_value}")
+        print(f"Accuracy: {accuracy_value}")
+        print(f"F1 score: {f1_score_value}")
+        
+        
     y_loss = np.array(y_loss)
     y_accuracy = np.array(y_accuracy)
     y_f1 = np.array(y_f1)

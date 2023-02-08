@@ -11,18 +11,18 @@ class ReLU():
 
     def forward(self, x):
         """
-            x: shape = (batch_size, channels, height, width)
+            x: shape = (batch_size, ...)
         """
-        assert len(x.shape) == 4, "input shape is not 4D"
+        assert len(x.shape)>=2, "input shape is not at least 2D"
         self.x = x
         return np.maximum(x,0)
         
     def backward(self, del_z, lr):
         """
-            del_z: shape = (batch_size, channels, height, width)
+            del_z: shape = (batch_size, ...)
         """
-        assert len(del_z.shape) == 4, "input shape is not 4D"
-        assert del_z.shape == self.x.shape, "del_z shape is not same as x shape"
+        assert len(del_z.shape)>=2, "input shape is not at least 2D"
+        assert del_z.shape == self.x.shape, "del_z shape dont match"
         
         return del_z * (self.x >= 0)
 

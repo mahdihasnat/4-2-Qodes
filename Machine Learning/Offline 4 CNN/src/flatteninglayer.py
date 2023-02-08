@@ -8,16 +8,16 @@ class FlatteningLayer():
     
     def forward(self,x):
         """
-			in x: (batch_size, channels, height, width)
-			out x: (batch_size, channels*height*width)
+			in x: (batch_size, ...)
+			out x: (batch_size, ...)
         """
-        assert len(x.shape) == 4, "input shape is not 4D"
+        assert len(x.shape) >= 2, "input shape is not at least 2D"
         self.x_shape = x.shape
         return x.reshape(x.shape[0],-1)
     
     def backward(self,del_z,lr):
         """
-            in del_z: (batch_size, channels*height*width)
+            in del_z: (batch_size, ...)
         """
         return del_z.reshape(self.x_shape)
 
