@@ -1,17 +1,21 @@
 import numpy as np
+from sklearn import metrics as skm
 
 class CNN():
     
     def __init__(self) -> None:
         self.layers = []
+        self.log_loss = None
         
     
     def add_layer(self,layer):
         self.layers.append(layer)
         
-    def cross_entrpy_loss(self,y_pred,y_true):
-        # print("y_pred:",y_pred)
-        return np.sum(-1 * np.sum(y_true * np.log(y_pred), axis=0))
+    # def cross_entrpy_loss(self,y_pred,y_true):
+    #     # print("y_pred:",y_pred)
+    #     return np.sum(-1 * np.sum(y_true * np.log(y_pred), axis=0))
+    
+    
     
     def train(self,x,y_true,lr):
         """
@@ -26,7 +30,8 @@ class CNN():
         y = x
         # print("shape of y_true",y_true.shape)
         # print("train output:",y)
-        print(f"Cross entropy loss: {self.cross_entrpy_loss(y,y_true)}")
+        # print(f"Cross entropy loss: {self.cross_entrpy_loss(y,y_true)}")
+        self.log_loss =skm.log_loss(y_true=y_true,y_pred=y)
         
         del_z = y - y_true
         # print("shape of del_z",del_z.shape)

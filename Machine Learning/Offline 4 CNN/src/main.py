@@ -10,7 +10,7 @@ from linearlayer import LinearLayer
 from softmaxlayer import SoftMax
 
 from data_handler import load_dataset
-
+from matplotlib import pyplot as plt
 import tqdm
 
 import numpy as np
@@ -50,26 +50,34 @@ if __name__ == '__main__':
     # m.add_layer(Conv2d(out_channels=12,kernel_size=(5,5), stride=1,padding=0))
     
     
-    x,y = load_dataset(image_shape=(28,28))
-    epoch = 100
-    batch_size = 100
+    x,y = load_dataset(image_shape=(28,28),sample_bound=10000)
+    epoch = 1
+    batch_size = 64
     total_sample = x.shape[0]
     total_batch = (total_sample+batch_size-1)//batch_size
     lr = 0.01
+    
     for i in range(epoch):
         print(f"Epoch {i+1}:")
-        for j in range(total_batch):
+        y_loss=[]
+        for j in tqdm.tqdm(range(total_batch)):
             start = j*batch_size
             end = min((j+1)*batch_size,total_sample)
             m.train(x[start:end],y[start:end],lr)
-            # for k in range(start,end):
-            #     # show image and prediction
-            #     print("y_true:",y[k:k+1])
-            #     print("y_pred:",m.predict(x[k:k+1]))
-            #     print("y_pred:",np.argmax(m.predict(x[k:k+1])))
-            #     # cv2.imshow("image",x[k].reshape(28,28))
-            #     # input()
-            #     print("")
+            y_loss.append(m.log_loss)
+        x_axis = np.arange(total_batch)
+        y_loss = np.array(y_loss)
+        plt.plot(x_axis,y_loss)
+        plt.show()
+        # if (i+1)%10 == 0:
+        #     for k in range(start,end):
+        #         # show image and prediction
+        #         print("y_true:",y[k:k+1])
+        #         print("y_pred:",m.predict(x[k:k+1]))
+        #         print("y_pred:",np.argmax(m.predict(x[k:k+1])))
+        #         cv2.imshow("image",x[k].reshape(28,28))
+        #         input()
+        #         print("")
             
 
     

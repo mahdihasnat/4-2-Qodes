@@ -8,10 +8,10 @@ import matplotlib.image as mpimg
 # Required magic to display matplotlib plots in notebooks
 # %matplotlib inline
 
-def load_dataset(image_shape=(28,28)):
+def load_dataset(image_shape=(28,28),sample_bound=-1):
     base_folder = './../resource/NumtaDB_with_aug'
-    sub_folder = '/training-b/'
-    csv_file_name = base_folder + '/training-b.csv'
+    sub_folder = '/training-a/'
+    csv_file_name = base_folder + '/training-a.csv'
     csv = pd.read_csv(csv_file_name)
     
     print("Total rows: {0}".format(csv.shape[0]))
@@ -62,6 +62,8 @@ def load_dataset(image_shape=(28,28)):
             # print("shape of x",x.shape)
             # print("shape of y",y.shape)
             # break
+            if sample_bound != -1 and len(x_list) >= sample_bound:
+                break
         else:
             print("File does not exist:",image_fila_name)
         pass
