@@ -39,10 +39,10 @@ def get_lenet():
     m.add_layer(FlatteningLayer())
     m.add_layer(LinearLayer(out_features=120))
     m.add_layer(ReLU())
-    m.add_layer(FlatteningLayer())
+    # m.add_layer(FlatteningLayer())
     m.add_layer(LinearLayer(out_features=84))
     m.add_layer(ReLU())
-    m.add_layer(FlatteningLayer())
+    # m.add_layer(FlatteningLayer())
     m.add_layer(LinearLayer(out_features=10))
     m.add_layer(SoftMax())
     

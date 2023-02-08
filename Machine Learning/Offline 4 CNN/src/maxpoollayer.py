@@ -66,7 +66,7 @@ class MaxPool2d():
                 # print("i=",i,"j=",j)
                 # print("shape of ins:",ins.shape)
                 # print("self out x: ",self.out_x.shape)
-                multiplier = (ins == self.out_x)
+                multiplier = np.allclose(ins,self.out_x)
                 
                 del_x[:,:,i:i+self.out_x.shape[2]*self.stride[0]:self.stride[0],j:j+self.out_x.shape[3]*self.stride[1]:self.stride[1]] += multiplier * del_z
         
