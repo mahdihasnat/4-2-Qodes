@@ -1,12 +1,26 @@
 import numpy as np
 from sklearn import metrics as skm
 
+from convlayer import Conv2d
+from activationlayer import ReLU
+from maxpoollayer import MaxPool2d
+from flatteninglayer import FlatteningLayer
+from linearlayer import LinearLayer
+from softmaxlayer import SoftMax
+from data_handler import load_dataset
+from matplotlib import pyplot as plt
+import tqdm
+from sklearn import metrics as skm
+import numpy as np
+import cv2
+
+
 class CNN():
     
     def __init__(self) -> None:
         self.layers = []
         self.log_loss = None
-        
+        self.name = 'CNN'
     
     def add_layer(self,layer):
         self.layers.append(layer)
@@ -51,3 +65,23 @@ class CNN():
     def clean(self):
         for layer in self.layers:
             layer.clean()
+
+
+
+def get_lenet():
+    m = CNN()
+    m.add_layer(Conv2d(out_channels=6,kernel_size=(5,5), stride=1,padding=2))
+    m.add_layer(ReLU())
+    m.add_layer(MaxPool2d(kernel_size=(2,2), stride=2))
+    m.add_layer(Conv2d(out_channels=16,kernel_size=(5,5), stride=1,padding=2))
+    m.add_layer(ReLU())
+    m.add_layer(MaxPool2d(kernel_size=(2,2), stride=2))
+    m.add_layer(FlatteningLayer())
+    m.add_layer(LinearLayer(out_features=120))
+    m.add_layer(ReLU())
+    m.add_layer(LinearLayer(out_features=84))
+    m.add_layer(ReLU())
+    m.add_layer(LinearLayer(out_features=10))
+    m.add_layer(SoftMax())
+    m.name = 'LeNet'    
+    return m
