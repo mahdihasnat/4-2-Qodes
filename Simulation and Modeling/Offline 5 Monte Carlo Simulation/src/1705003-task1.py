@@ -1,8 +1,18 @@
 import numpy as np
 from matplotlib import pyplot as plt
 
+def get_uniform_random_permutation(n):
+    perm = np.arange(n)
+    i=1
+    while i<n:
+        j = np.random.randint(0,i)
+        perm[i],perm[j] = perm[j],perm[i]
+        i+=1
+    return perm
+
 def sample(n,m,s)->bool:
-    perm = np.random.permutation(n)
+    
+    perm = get_uniform_random_permutation(n)
     selected = None
     if m == 0:
         selected = perm[0]
@@ -25,7 +35,7 @@ def prob(n,m,s,iter):
 
 n=100
 s=10
-iter=1000000
+iter=1000
 x = np.arange(0,n)
 y = np.array([prob(n,m,s,iter) for m in x])
 plt.plot(x,y)
