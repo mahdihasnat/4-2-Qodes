@@ -33,20 +33,27 @@ def get_dataset(image_shape,channel,sample_bound,base_folder,csv_file_name):
             # show image
             
             img = cv2.resize(img, image_shape)
-            # plt.imshow(img, cmap='gray', interpolation='bicubic')
-            # plt.show()
             # print(img.dtype)
             # print(img.shape)
             # add 1 channel dimension
-            img = np.expand_dims(img, axis=0)
             # print(img.dtype)
             # print(img.shape)
             # print(img)
+            # dilute image
+            
+            img = 255-img
+            # plt.imshow(img, cmap='gray', interpolation='bicubic')
+            # plt.show()
+            cv2.dilate(img, np.ones((10,10),np.uint8), iterations = 1)
+            # plt.imshow(img, cmap='gray', interpolation='bicubic')
+            # plt.show()
+            
+            img = np.expand_dims(img, axis=0)
+            
             img=img.astype(np.float32)
             # print(img.dtype)
             # img = img/np.maximum(img.max(),1)
             img /= 255
-            img = 1-img
             # print(img.dtype)
             # print("Shape of img",img.shape)
    

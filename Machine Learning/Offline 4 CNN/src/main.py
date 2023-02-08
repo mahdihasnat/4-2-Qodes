@@ -12,6 +12,8 @@ from sklearn import metrics as skm
 import numpy as np
 import cv2
 
+import pickle as pk
+
 def get_lenet():
     m = CNN()
     m.add_layer(Conv2d(out_channels=6,kernel_size=(5,5), stride=1,padding=2))
@@ -23,22 +25,22 @@ def get_lenet():
     m.add_layer(FlatteningLayer())
     m.add_layer(LinearLayer(out_features=120))
     m.add_layer(ReLU())
-    # m.add_layer(FlatteningLayer())
     m.add_layer(LinearLayer(out_features=84))
     m.add_layer(ReLU())
-    # m.add_layer(FlatteningLayer())
     m.add_layer(LinearLayer(out_features=10))
     m.add_layer(SoftMax())
     
     return m
+
+
 
 if __name__ == '__main__':
     # np.random.seed(0)
     
     m = get_lenet()
     
-    x,y = load_dataset(image_shape=(32,32),sample_bound=10000)
-    epoch = 20
+    x,y = load_dataset(image_shape=(32,32),sample_bound=100)
+    epoch = 5
     batch_size = 64
     total_sample = x.shape[0]
     lr = 0.01
@@ -72,10 +74,13 @@ if __name__ == '__main__':
             m.train(x_train[start:end],y_train[start:end],lr)
         
         y_pred = np.zeros(y_validation.shape)
+        
         for j in tqdm.tqdm(range(total_batch_validation), "predicting validation"):
             start = j*batch_size
             end = min((j+1)*batch_size,y_validation.shape[0])
             y_pred[start:end]=m.predict(x_validation[start:end])
+        
+        
         
         loss_value = skm.log_loss(y_true = y_validation,y_pred = y_pred)
         y_loss.append(loss_value)
@@ -89,6 +94,9 @@ if __name__ == '__main__':
         f1_score_value = skm.f1_score(y_true = y_true_value,y_pred = y_pred_value,average='macro')
         y_f1.append(f1_score_value)
         
+        confusion_matrix = skm.confusion_matrix(y_true = y_true_value,y_pred = y_pred_value)
+        
+        # train predict
         y_pred = np.zeros(y_train.shape)
         for j in tqdm.tqdm(range(total_batch_train),"predicting train"):
             start = j*batch_size
@@ -97,11 +105,16 @@ if __name__ == '__main__':
         
         loss_value_train = skm.log_loss(y_true = y_train,y_pred = y_pred)
         y_loss_train.append(loss_value_train)
-        
+        print("")
         print(f"Train Loss: {loss_value_train}")
         print(f"Validation Loss: {loss_value}")
         print(f"Accuracy: {accuracy_value}")
         print(f"F1 score: {f1_score_value}")
+        print(f"Confusion matrix: {confusion_matrix}")
+        
+        m.clean()
+        pk.dump(m,open("model_e{}_f1_{:.2f}.pkl".format(i+1,f1_score_value),"wb"))
+        
         
     y_loss = np.array(y_loss)
     y_accuracy = np.array(y_accuracy)
@@ -112,23 +125,27 @@ if __name__ == '__main__':
     plt.plot(x_axis,y_loss)
     plt.xlabel("Epoch")
     plt.title("Validation Cross entropy Loss")
+    plt.savefig("validation_loss.png")
     
     plt.figure()
     plt.plot(x_axis,y_loss_train)
     plt.xlabel("Epoch")
     plt.title("Train Cross entropy Loss")
+    plt.savefig("train_loss.png")
     
     plt.figure()
     plt.plot(x_axis,y_accuracy)
     plt.xlabel("Epoch")
     plt.title("Accuracy")
+    plt.savefig("validation_acc.png")
     
     plt.figure()
     plt.plot(x_axis,y_f1)
     plt.xlabel("Epoch")
     plt.title("F1 score")
+    plt.savefig("validation_f1.png")
     
     
-    plt.show()
+    plt.savefig("result.png")
     
     
