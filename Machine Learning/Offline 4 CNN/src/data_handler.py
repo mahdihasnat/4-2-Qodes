@@ -168,3 +168,38 @@ def load_dataset(image_shape=(28,28),sample_bound=-1):
     assert len(y.shape) == 2, "y shape is not 2D"
     
     return x,y
+
+
+def load_test_dataset(image_shape=(28,28),sample_bound=-1):
+    base_folder = './../resource/NumtaDB_with_aug'
+    x_list = []
+    y_list = []
+    channel = 1
+    
+    
+    csv_file_name = 'training-d.csv'
+    tx,ty= get_dataset(
+                       image_shape=image_shape,
+                       channel = channel,
+                       sample_bound=sample_bound,
+                       base_folder=base_folder,
+                       csv_file_name=csv_file_name
+                       )
+    x_list.extend(tx)
+    y_list.extend(ty)
+    
+    x=np.array(x_list)
+    y=np.array(y_list)
+    # print("x_max: {0}, y_max: {1}".format(x_max, y_max))
+    print("image_shape: {0}".format(image_shape))
+    print("x shape: {0}".format(x.shape))
+    print("y shape: {0}".format(y.shape))
+    assert x.shape[0] == y.shape[0], "x and y have different number of rows"
+    assert x.shape[1] == channel, "x has different number of channels"
+    assert x.shape[2] == image_shape[0], "x has different height"
+    assert x.shape[3] == image_shape[1], "x has different width"
+    assert y.shape[1] == 10, "y has different number of classes"
+    assert len(x.shape) == 4, "x shape is not 4D"
+    assert len(y.shape) == 2, "y shape is not 2D"
+    
+    return x,y

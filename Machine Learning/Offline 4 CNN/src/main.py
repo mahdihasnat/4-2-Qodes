@@ -5,7 +5,7 @@ from maxpoollayer import MaxPool2d
 from flatteninglayer import FlatteningLayer
 from linearlayer import LinearLayer
 from softmaxlayer import SoftMax
-from data_handler import load_dataset
+from data_handler import load_dataset, load_test_dataset
 from matplotlib import pyplot as plt
 import tqdm
 from sklearn import metrics as skm
@@ -20,16 +20,18 @@ from sklearn import model_selection as skms
 from cnn import get_lenet
 
 import seaborn as sns
+image_shape = (8,8)
+x,y_onehot = load_dataset(image_shape=image_shape,sample_bound=-1)
+x_test, y_test_onehot = load_test_dataset(image_shape=image_shape,sample_bound=-1)
 
-x,y = load_dataset(image_shape=(28,28),sample_bound=5000)
 
 def train(lr,epoch):
     
     # use 28x28 for lenet
-    m = get_lenet()
+    # m = get_lenet()
     
     # use 8x8 for shnet
-    # m = get_shnet()
+    m = get_shnet()
     
     batch_size = 32
     total_sample = x.shape[0]
@@ -37,66 +39,88 @@ def train(lr,epoch):
     
     # shuffle split train and validation
     print("shape of x:",x.shape)
-    print("shape of y:",y.shape)
-    x_train,x_validation,y_train,y_validation = skms.train_test_split(x,y,train_size=train_ratio,shuffle=True,stratify=y)
+    print("shape of y:",y_onehot.shape)
+    x_train,x_validation,y_train_onehot,y_validation_onehot = skms.train_test_split(x,y_onehot,train_size=train_ratio,shuffle=True,stratify=y_onehot)
     
+    y_train = np.argmax(y_train_onehot,axis=1)
+    y_validation = np.argmax(y_validation_onehot,axis=1)
+    y_test = np.argmax(y_test_onehot,axis=1)
     
     print("Train size: {}".format(x_train.shape[0]))
     print("Validation size: {}".format(x_validation.shape[0]))
+    print("Test size: {}".format(x_test.shape[0]))
     str_pre = "lr_{:.7f}_train_{}_m_{}_e_{}_".format(lr,x_train.shape[0],m.name,epoch)
     
     total_batch_train = (x_train.shape[0]+batch_size-1)//batch_size
     total_batch_validation = (x_validation.shape[0]+batch_size-1)//batch_size
+    total_batch_test = (x_test.shape[0]+batch_size-1)//batch_size
     
     y_loss_validation=[]
     y_f1=[]
     y_accuracy=[]
     y_loss_train=[]
-    stat_d = pd.DataFrame(columns=["epoch","loss_validation","loss_train","f1","accuracy"])
+    y_accuracy_test=[]
+    y_f1_test=[]
+    stat_d = pd.DataFrame(columns=["epoch","loss_validation","loss_train","f1_validation","accuracy_validation","f1_test","accuracy_test"])
     for i in tqdm.tqdm(range(epoch)):
         print(f"Epoch {i+1}:")
         for j in tqdm.tqdm(range(total_batch_train), "training"):
             start = j*batch_size
-            end = min((j+1)*batch_size,y_train.shape[0])
-            m.train(x_train[start:end],y_train[start:end],lr)
+            end = min((j+1)*batch_size,y_train_onehot.shape[0])
+            m.train(x_train[start:end],y_train_onehot[start:end],lr)
         
-        y_pred = np.zeros(y_validation.shape)
+        y_pred_onehot = np.zeros(y_validation_onehot.shape)
         
         for j in tqdm.tqdm(range(total_batch_validation), "predicting validation"):
             start = j*batch_size
-            end = min((j+1)*batch_size,y_validation.shape[0])
-            y_pred[start:end]=m.predict(x_validation[start:end])
+            end = min((j+1)*batch_size,y_validation_onehot.shape[0])
+            y_pred_onehot[start:end]=m.predict(x_validation[start:end])
         
         
-        
-        loss_value = skm.log_loss(y_true = y_validation,y_pred = y_pred)
+        loss_value = skm.log_loss(y_true = y_validation_onehot,y_pred = y_pred_onehot)
         y_loss_validation.append(loss_value)
         
-        y_pred_value = np.argmax(y_pred,axis=1)
-        y_true_value = np.argmax(y_validation,axis=1)
+        y_pred = np.argmax(y_pred_onehot,axis=1)
         
-        accuracy_value = skm.accuracy_score(y_true = y_true_value,y_pred = y_pred_value)
+        accuracy_value = skm.accuracy_score(y_true = y_validation,y_pred = y_pred)
         y_accuracy.append(accuracy_value)
         
-        f1_score_value = skm.f1_score(y_true = y_true_value,y_pred = y_pred_value,average='macro')
+        f1_score_value = skm.f1_score(y_true = y_validation,y_pred = y_pred,average='macro')
         y_f1.append(f1_score_value)
         
-        confusion_matrix = skm.confusion_matrix(y_true = y_true_value,y_pred = y_pred_value)
+        
+        confusion_matrix = skm.confusion_matrix(y_true = y_validation,y_pred = y_pred)
         
         # train predict
-        y_pred = np.zeros(y_train.shape)
+        y_pred_onehot = np.zeros(y_train_onehot.shape)
         for j in tqdm.tqdm(range(total_batch_train),"predicting train"):
             start = j*batch_size
-            end = min((j+1)*batch_size,y_train.shape[0])
-            y_pred[start:end]=m.predict(x_train[start:end])
+            end = min((j+1)*batch_size,y_pred_onehot.shape[0])
+            y_pred_onehot[start:end]=m.predict(x_train[start:end])
         
-        loss_value_train = skm.log_loss(y_true = y_train,y_pred = y_pred)
+        loss_value_train = skm.log_loss(y_true = y_train_onehot,y_pred = y_pred_onehot)
         y_loss_train.append(loss_value_train)
+        
+        
+        # test predict
+        y_pred_onehot = np.zeros(y_test_onehot.shape)
+        for j in tqdm.tqdm(range(total_batch_test),"predicting test"):
+            start = j*batch_size
+            end = min((j+1)*batch_size,y_pred_onehot.shape[0])
+            y_pred_onehot[start:end]=m.predict(x_test[start:end])
+            
+        y_pred = np.argmax(y_pred_onehot,axis=1)
+        accuracy_value_test = skm.accuracy_score(y_true = y_test,y_pred = y_pred)
+        f1_score_value_test = skm.f1_score(y_true = y_test,y_pred = y_pred,average='macro')
+        
+        
         print("")
         print(f"Train Loss: {loss_value_train}")
         print(f"Validation Loss: {loss_value}")
-        print(f"Accuracy: {accuracy_value}")
-        print(f"F1 score: {f1_score_value}")
+        print(f"Validation Accuracy: {accuracy_value}")
+        print(f"Validation F1 score: {f1_score_value}")
+        print(f"Test Accuracy: {accuracy_value_test}")
+        print(f"Test F1 score: {f1_score_value_test}")
         print(f"Confusion matrix: {confusion_matrix}")
         
         plt.figure(figsize=(10,10))
@@ -107,9 +131,12 @@ def train(lr,epoch):
         
         
         stat_d = pd.concat([stat_d,pd.DataFrame({"epoch":i+1,"loss_validation":loss_value,
-                                                 "loss_train":loss_value_train,
-                                                 "f1":f1_score_value,
-                                                 "accuracy":accuracy_value},
+                                                    "loss_train":loss_value_train,
+                                                    "f1_validation":f1_score_value,
+                                                    "accuracy_validation":accuracy_value,
+                                                    "f1_test":f1_score_value_test,
+                                                    "accuracy_test":accuracy_value_test
+                                                 },
                                                 index=[0])],ignore_index=True)
         stat_d.to_csv("data/stat_lr_{:.6f}_train_{}_m_{}.csv".format(lr,x_train.shape[0],m.name),index=False)
         
