@@ -48,7 +48,7 @@ class LinearLayer():
         
         del_w = np.matmul(self.x.T, del_z)/batch_size
         assert del_w.shape == self.weights.shape, "del_w shape dont match"
-        del_b = np.sum(del_z, axis = 0)
+        del_b = np.sum(del_z, axis = 0)/batch_size
         assert del_b.shape == self.biases.shape, "del_b shape dont match"
         del_x = np.matmul(del_z, self.weights.T)
         assert del_x.shape == self.x.shape, "del_x shape dont match"

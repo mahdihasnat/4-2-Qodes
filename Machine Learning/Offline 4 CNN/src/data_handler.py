@@ -10,6 +10,31 @@ import os
 # Required magic to display matplotlib plots in notebooks
 # %matplotlib inline
 
+def crop_image(img):
+    # mn = img.min()
+    # mx = img.max()
+    # print("mn  ",mn)
+    # print("mx  ",mx)
+    threshold = 122
+    img = img * (img > threshold)
+    tmp = np.where(img > 0)
+    if len(tmp[0])==0 or len(tmp[1])==0:
+        return img
+    
+    min_row = tmp[0].min()
+    max_row = tmp[0].max()
+    min_col = tmp[1].min()
+    max_col = tmp[1].max()
+    # print("min_row  ",min_row)
+    # print("max_row  ",max_row)
+    # print("min_col  ",min_col)
+    # print("max_col  ",max_col)
+    
+    # crop image to bounding box [min_row, max_row, min_col, max_col]
+    if min_row<=max_row and min_col<=max_col:
+        img = img[min_row:max_row+1, min_col:max_col+1]
+    return img
+
 
 def get_dataset(image_shape,channel,sample_bound,base_folder,csv_file_name):
     csv = pd.read_csv(os.path.join(base_folder,csv_file_name))
@@ -29,7 +54,18 @@ def get_dataset(image_shape,channel,sample_bound,base_folder,csv_file_name):
         if os.path.exists(image_fila_name):
             # print("File exists")
             img = cv2.imread(image_fila_name, cv2.IMREAD_GRAYSCALE)
+            img = 255-img
+            
             # print(img.shape)
+            # print(img)
+            # plt.imshow(img, cmap='gray', interpolation='bicubic')
+            # plt.show()
+            img = crop_image(img)
+            # print(img)
+            # plt.imshow(img, cmap='gray', interpolation='bicubic')
+            # plt.show()
+            # print(img)
+            # exit()
             # show image
             
             img = cv2.resize(img, image_shape)
@@ -41,7 +77,6 @@ def get_dataset(image_shape,channel,sample_bound,base_folder,csv_file_name):
             # print(img)
             # dilute image
             
-            img = 255-img
             # plt.imshow(img, cmap='gray', interpolation='bicubic')
             # plt.show()
             cv2.dilate(img, np.ones((10,10),np.uint8), iterations = 1)

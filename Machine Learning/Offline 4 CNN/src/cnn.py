@@ -85,3 +85,17 @@ def get_lenet():
     m.add_layer(SoftMax())
     m.name = 'LeNet'    
     return m
+
+
+def get_shnet():
+    m = CNN()
+    m.add_layer(Conv2d(out_channels=32,kernel_size=(3,3), stride=(1,1),padding=0))
+    m.add_layer(ReLU())
+    m.add_layer(MaxPool2d(kernel_size=(2,2), stride=(2,2)))
+    m.add_layer(FlatteningLayer())
+    m.add_layer(LinearLayer(out_features=100))
+    m.add_layer(ReLU())
+    m.add_layer(LinearLayer(out_features=10))
+    m.add_layer(SoftMax())
+    m.name = 'ShNet'
+    return m
