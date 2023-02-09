@@ -21,12 +21,12 @@ from cnn import get_lenet
 
 import seaborn as sns
 
-x,y = load_dataset(image_shape=(32,32),sample_bound=-1)
+x,y = load_dataset(image_shape=(28,28),sample_bound=-1)
 
 def train(lr,epoch):
     m = get_lenet()
     
-    batch_size = 128
+    batch_size = 32
     total_sample = x.shape[0]
     train_ratio = 0.8
     
@@ -38,7 +38,7 @@ def train(lr,epoch):
     
     print("Train size: {}".format(x_train.shape[0]))
     print("Validation size: {}".format(x_validation.shape[0]))
-    str_pre = "lr_{:.2f}_train_{}_m_{}_e_{}_".format(lr,x_train.shape[0],m.name,epoch)
+    str_pre = "lr_{:.7f}_train_{}_m_{}_e_{}_".format(lr,x_train.shape[0],m.name,epoch)
     
     total_batch_train = (x_train.shape[0]+batch_size-1)//batch_size
     total_batch_validation = (x_validation.shape[0]+batch_size-1)//batch_size
@@ -153,24 +153,23 @@ def train(lr,epoch):
 if __name__ == '__main__':
     np.random.seed(0)
     
-    train(0.01,100)
+    # train(0.01,100)
     
     lrs =[]
     
-    lrs.append(0.000001)
-    lrs.append(0.00001)
-    lrs.append(0.0001)
-    lrs.append(0.0002)
-    lrs.append(0.0003)
-    lrs.append(0.0004)
-    lrs.append(0.0005)
-    lrs.append(0.002)
-    lrs.append(0.003)
-    lrs.append(0.004)
-    lrs.append(0.005)
+    # done
+    # lrs.append(0.000001)
+    # lrs.append(0.00001)
+    # lrs.append(0.0001)
+    
+    # 
+    lrs.append(0.001)
+    # lrs.append(0.003)
+    # lrs.append(0.005)
+    
+    # 
     lrs.append(0.01)
     lrs.append(0.02)
-    lrs.append(0.03)
     lrs.append(0.04)
     lrs.append(0.05)
     lrs.append(0.1)
@@ -179,5 +178,5 @@ if __name__ == '__main__':
     
     for lr in lrs:
         print("Learning rate: ",lr)
-        train(lr,epoch=100)
+        train(lr,epoch=30)
     
