@@ -21,11 +21,15 @@ from cnn import get_lenet
 
 import seaborn as sns
 
-x,y = load_dataset(image_shape=(8,8),sample_bound=5000)
+x,y = load_dataset(image_shape=(28,28),sample_bound=5000)
 
 def train(lr,epoch):
-    # m = get_lenet()
-    m = get_shnet()
+    
+    # use 28x28 for lenet
+    m = get_lenet()
+    
+    # use 8x8 for shnet
+    # m = get_shnet()
     
     batch_size = 32
     total_sample = x.shape[0]
