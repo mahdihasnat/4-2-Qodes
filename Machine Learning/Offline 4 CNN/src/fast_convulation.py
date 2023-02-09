@@ -82,6 +82,40 @@ def fast_hadamard_weight_calc(x,y):
     return z
     
 
+def fast_convulate_x_calc(x,y):
+    """
+    in x shape: (batch, out_channel, height (appropiate ), width (appropiate ))
+    in y shape: (out_channels, in_channels, kernel_height, kernel_width)
+    out shape: (batch,in_channels, padded_in_height, padded_in_width)
+    """
+    assert len(x.shape) == 4, "x not in 4D"
+    assert len(y.shape) == 4, "y not in 4D"
+    assert x.shape[1] == y.shape[0], "out_channels dont match"
+    
+    n1,m1 = x.shape[-2:]
+    n2,m2 = y.shape[-2:]
+    
+    n = n1+n2-1
+    m = m1+m2-1
+    
+    # print("n n1 n2 m m1 m2",n,n1,n2,m,m1,m2)
+    x = np.pad(x,((0,0),(0,0),(0,n-n1),(0,m-m1)), mode = 'constant', constant_values = 0)
+    y = np.pad(y,((0,0),(0,0),(0,n-n2),(0,m-m2)), mode = 'constant', constant_values = 0)
+    
+    fx = fft2(x, axes = (-2,-1))
+    fy = fft2(y, axes = (-2,-1))
+    assert fx.shape [-2:] == (n,m) , "fx shape dont match"
+    assert fy.shape [-2:] == (n,m) , "fy shape dont match"
+    
+    fz = np.einsum("ijkl,jmkl->imkl",fx,fy)
+    assert fz.shape == (x.shape[0],y.shape[1],n,m), "fz shape dont match"
+    z = np.real(ifft2(fz,axes = (-2,-1)))
+    assert z.shape == (x.shape[0],y.shape[1],n,m), "z shape dont match"
+    z = z[:,:,n2-1:n1,m2-1:m1]
+    
+    assert z.shape == (x.shape[0],y.shape[1],n1-n2+1,m1-m2+1), "z shape dont match"
+    return z
+
 if __name__ == '__main__':
     batch_size = 15
     in_channels = 5

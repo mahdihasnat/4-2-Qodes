@@ -21,7 +21,7 @@ from cnn import get_lenet
 
 import seaborn as sns
 
-x,y = load_dataset(image_shape=(28,28),sample_bound=-1)
+x,y = load_dataset(image_shape=(28,28),sample_bound=5000)
 
 def train(lr,epoch):
     m = get_lenet()
@@ -151,9 +151,9 @@ def train(lr,epoch):
 
 
 if __name__ == '__main__':
-    np.random.seed(0)
+    # np.random.seed(0)
     
-    # train(0.01,100)
+    train(0.1,10)
     
     lrs =[]
     

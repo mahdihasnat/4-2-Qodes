@@ -1,6 +1,6 @@
 import numpy as np
 from numpy.lib.stride_tricks import as_strided
-from fast_convulation import fast_convulate, fast_hadamard, fast_hadamard_weight_calc
+from fast_convulation import fast_convulate, fast_hadamard, fast_hadamard_weight_calc,fast_convulate_x_calc
 # cnn convolutional layer
 class Conv2d:
     
@@ -100,32 +100,6 @@ class Conv2d:
         batch_size = self.x_shape[0]
         in_channels = self.x_shape[1]
         
-        # https://medium.com/@mayank.utexas/backpropagation-for-convolution-with-strides-8137e4fc2710
-        modified_del_z = np.zeros( (batch_size, self.out_channels,
-                                (del_z.shape[2]-1)*(self.stride[0]) + self.kernel_shape[0]*2-1,
-                                (del_z.shape[3]-1)*(self.stride[1]) + self.kernel_shape[1]*2-1))
-        modified_del_z[:,:,
-                       self.kernel_shape[0]-1:modified_del_z.shape[-2]-self.kernel_shape[0]+1:self.stride[0],
-                       self.kernel_shape[1]-1:modified_del_z.shape[-1]-self.kernel_shape[1]+1:self.stride[1]
-                       ] = del_z
-        swapped_weights = np.swapaxes(self.weights,0,1)
-        padded_del_x = fast_convulate(modified_del_z,swapped_weights)
-        padded_shape = (batch_size, in_channels, self.x_shape[2] + self.padding[0]*2 , self.x_shape[3] + self.padding[1]*2)
-        
-        # print("padded_del_x.shape: ",padded_del_x.shape)
-        # print("padded_shape: ",padded_shape)
-        assert padded_del_x.shape == padded_shape, "padded shape dont match"
-        
-        del_x = padded_del_x[:,:,self.padding[0]:padded_del_x.shape[2]-self.padding[0],
-                             self.padding[1]:padded_del_x.shape[3]-self.padding[1]]
-        assert del_x.shape == self.x_shape, "del_x shape dont match"
-        
-        # print("x_shape : ",self.x_shape)
-        # print("del_z.shape: ",del_z.shape)
-        # print("stride: ",self.stride)
-        # print("padding: ",self.padding)
-        # print("kernel_shape: ",self.kernel_shape)
-        # print("self.weights shape: ",self.weights.shape)
         modified_del_z = np.zeros((batch_size,self.out_channels,
                                 self.stride[0] * (del_z.shape[2] - 1) +1,
                                 self.stride[1] * (del_z.shape[3] - 1) +1))
@@ -135,19 +109,39 @@ class Conv2d:
         # print("self.padded_x.shape ",self.padded_x.shape)
         # print("modified_del_z.shape: ",modified_del_z.shape)
         del_w = fast_hadamard_weight_calc(self.padded_x,modified_del_z)
+        del_w = del_w[:,:,:self.kernel_shape[0]:,:self.kernel_shape[1]:]
         del_w /= batch_size
         # print("del_w.shape: ",del_w.shape)
         assert del_w.shape == self.weights.shape, "del_w shape dont match"
         
-        self.weights -= lr*del_w
+        # https://medium.com/@mayank.utexas/backpropagation-for-convolution-with-strides-8137e4fc2710
+        extra_end_padding = (self.padded_x.shape[2] - modified_del_z.shape[2],
+                             self.padded_x.shape[3] - modified_del_z.shape[3])
+ 
+        padded_modified_del_z_size = (modified_del_z.shape[2] + self.kernel_shape[0]-1 + extra_end_padding[0],
+                                      modified_del_z.shape[3] + self.kernel_shape[1]-1 + extra_end_padding[1])
+        padded_modified_del_z = np.pad(modified_del_z, ((0,0),
+                                                        (0,0),
+                                                        (self.kernel_shape[0]-1,extra_end_padding[0]),
+                                                        (self.kernel_shape[1]-1,extra_end_padding[1])))
+        # padded_modified_del_z shape = (batch_size, out_channel, height,width)
+        # weights shape = (out_channel, in_channel, kernel_height, kernel_width)
         
+        del_padded_x = fast_convulate_x_calc(padded_modified_del_z,self.weights)
+        assert del_padded_x.shape == self.padded_x.shape, "del_padded_x shape dont match"
+        
+        del_x = del_padded_x[:,:,
+                             self.padding[0]:self.padded_x.shape[-2]-self.padding[0]:,
+                             self.padding[1]:self.padded_x.shape[-1]-self.padding[1]:]
+        assert del_x.shape == self.x_shape, "del_x shape dont match"
         
         # del_z: shape = (batch_size, out_channel, out_height, out_width)
         # del_b: shape = (out_channel,)
         del_b = np.sum(del_z,axis=(0,2,3))/batch_size
         assert del_b.shape == self.biases.shape, "del_b shape dont match"
         
-        self.biases -=lr * del_b
+        self.weights -= lr*del_w
+        self.biases -= lr*del_b
         
         return del_x
 
@@ -157,12 +151,23 @@ class Conv2d:
         
 
 if __name__ == '__main__':
-    
-    my = Conv2d( 2, 1, stride=1,padding=(1,1))
-    x = np.array([.1,.2,.3,.4,.5,.6,.7,.8,.9]).reshape(1,1,3,3)
-    print("x: ",x)
-    print("x.shape: ",x.shape)
-    z = my.forward(x)
-    print("z: ",z)
+    np.random.seed(0)
+    while True:
+        lim = 10
+        stride = (np.random.randint(1,lim),np.random.randint(1,lim))
+        padding = (np.random.randint(0,lim),np.random.randint(0,lim))
+        out_channels = np.random.randint(1,lim)
+        kernel_shape = (np.random.randint(1,lim),np.random.randint(1,lim))
+        x_shape = (np.random.randint(1,lim),np.random.randint(1,lim),np.random.randint(1,lim),np.random.randint(1,lim))
+        if x_shape[2] < kernel_shape[0] or x_shape[3] < kernel_shape[1]:
+            continue
+        my = Conv2d( out_channels=out_channels, kernel_size=kernel_shape, stride=stride,padding=padding)
+        x = np.array([.1,.2,.3,.4,.5,.6,.7,.8,.9]).reshape(1,1,3,3)
+        x = np.zeros(x_shape)
+        print("x: ",x)
+        print("x.shape: ",x.shape)
+        z = my.forward(x)
+        print("z: ",z)
+        my.backward(z,0.1)
     
     
