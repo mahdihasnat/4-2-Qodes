@@ -185,7 +185,7 @@ def train(lr,epoch):
 if __name__ == '__main__':
     # np.random.seed(0)
     
-    train(0.1,20)
+    train(0.2,30)
     
     lrs =[]
     
@@ -195,7 +195,7 @@ if __name__ == '__main__':
     # lrs.append(0.0001)
     
     # 
-    lrs.append(0.001)
+    # lrs.append(0.001)
     # lrs.append(0.003)
     # lrs.append(0.005)
     
