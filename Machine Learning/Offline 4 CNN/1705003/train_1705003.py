@@ -823,14 +823,14 @@ import seaborn as sns
 
 def train(lr,epoch):
     print("learning rate:",lr)
-    image_shape = (8,8)
+    image_shape = (28,28)
     x,y_onehot = load_dataset(image_shape=image_shape,sample_bound=-1)
     x_test, y_test_onehot = load_test_dataset(image_shape=image_shape,sample_bound=-1)
     # use 28x28 for lenet
-    # m = get_lenet()
+    m = get_lenet()
         
     # use 8x8 for shnet
-    m = get_shnet()
+    # m = get_shnet()
     
     batch_size = 64
     total_sample = x.shape[0]
@@ -991,5 +991,7 @@ if __name__ == '__main__':
     # np.random.seed(0)
     
     train(0.1,30)
+    train(0.5,30)
+    train(0.0001,30)
     
     
